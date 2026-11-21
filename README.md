@@ -4,20 +4,37 @@ The machine, not the story. A deterministic tick engine that runs a forked
 Ironwild world off NPC and player actions, with the state database as the
 single source of truth and an append-only event log.
 
-**Status (2026-11-21):** Built and accepted on v1.3, rerun on v1.4 and
-v1.5. 51 tests pass (14 fixture + 37 Fork A). v1.5 acceptance checks
-PASS: 30-tick run (356 events, 54 rests) and 400-tick fast-forward
-(4,674 events, 785 rests vs 1,106 in v1.3, legacy once at tick 365,
-Era 2 unnamed), 3 territory controller flips proven on real seed data.
-The v1.5 combined fix works for its stated goal: Dream Share fires 225
-times in 400 ticks (v1.4: 0) and restores 224 Bond, all five Engines end
-at Bond 5, Pack Merge recurs (55 vs 4). Honest consequence: the fix moved
-the starvation to the Legion — its Feed ends at 0, trade collapses
-(28 vs 645), feed_engine halves (304 vs 556), Instinct fires 272 times
-(v1.4: 0), rests rise to 785, and the Pack floods to 698 Feed. That is a
-seed-economy question for Lore/Bryan, not an engine bug. Phase 2 stays on
-hold until Bryan approves the v1.5 rerun in the hub. See
-`phase-1-plan.md` sections 10 and 14.
+**Status (2026-11-21):** Built and accepted on v1.3, rerun on v1.4, v1.5,
+and v1.6 — all three reruns approved by Bryan in the hub. 103 tests pass.
+v1.6 acceptance checks PASS: 30-tick run (331 events, 39 rests) and
+400-tick fast-forward (4,387 events, 674 rests vs 1,106 in v1.3, legacy
+once at tick 365, Era 2 unnamed), 3 territory controller flips proven on
+real seed data. The v1.6 split works: Legion Feed ends at 7 (v1.5: 0),
+trade is back to 303 (v1.5: 28), feed_engine back to 429, Instinct back
+to 0, Pack Feed ends at 12 (v1.5: 698 — the flood is gone). Dream Share
+fires 93 times and restores 92 Bond, all five Engines end at Bond 5,
+Pack Merge recurs 22 times. Honest qualifier: end-of-tick Legion Feed
+still touches 0 on 74 of 400 ticks (min 0, max 9) — it recovers every
+time and trade never dies the way it did in v1.5, but "stays above 0" is
+not literally true tick-by-tick. Phase 2 plan approved 2026-11-21 00:40
+EST and building now: 1 tick per day, Fork A ticks daily first, sweep
+review-before-apply, handshake pasted in by Bryan for the test with
+auto-deliver later, narration deferred, no LLM picked yet. Stage 1 1A
+passes (acceptance record: 1A PASSES; test approval simulated on a
+scratch DB, not a live approval) — Turns 132 and 133 applied in the Fork
+A test, Turn 134 handshake ready. See `phase-2-plan.md` sections 10 and
+14 and `stage-1-plan.md`.
+
+## v1.6 engine work (2026-11-21)
+
+Seed v1.6 (Bryan's call, 2026-11-21 00:23 EST): hunt Feed splits +1 to
+the Pack and +1 to the actor's holder. Engine changes: the adapter emits
+the split as two resource_add ops, and the hunt's need follows both pools
+it fills (either pool below 3 scores +1). One scoring bug exposed by the
+change: scoring evaluated need clauses with the leaf-only clause_holds
+and crashed on a composite any-need — fixed to condition_holds, with a
+test. Instinct routing unchanged (the plan's rule, pilot's faction);
+forage stays the Legion's floor; scavenge unchanged.
 
 **How this was built:** I designed the build as separate workstreams on
 Muse, an AI agent platform: specialized agents with defined roles (Lore
@@ -41,6 +58,33 @@ test. Instinct hunts still feed the pilot's faction per the plan's rule
 (Sledge's Instinct hunts gave the Legion 122 Feed in 400 ticks); the seed
 changed the hunt action only, so rerouting Instinct is a Lore call for
 a later seed.
+
+## Phase 2 (2026-11-21)
+
+Plan approved by Bryan 2026-11-21 00:40 EST, building now. Five items,
+in build order; items 1–4 are the scope, item 5 is optional and last:
+daily auto tick (1 tick per day, Fork A first, live waits), session-close
+sweep (a finished session's Turn state block parsed into engine events,
+review-before-apply, nothing lands without approval), handshake back out
+(the next session starts from an engine-generated handshake; Bryan pastes
+it in for the test, auto-deliver later), Companion app integration (the
+static world view becomes the real Companion view), and narration as an
+optional render pass only (no LLM picked yet). The tick loop stays pure
+deterministic code — no LLM call ever writes state.
+
+Stage 1 of the shared-state test harness is complete and passes
+(acceptance record `runs/acceptance-1a/acceptance.json`: 1A PASSES). New
+modules: `auto_tick.py` (daily tick runner), `sweep.py` (state-block
+parser and validator), `handshake.py` (handshake generator),
+`proposals.py` (proposal intake and binding), `checkpoint.py`
+(checkpoint and carried-state records), `session.py` (session flag),
+`drive_io.py` (proposal/handshake file exchange). New tests:
+`test_auto_tick.py`, `test_sweep.py`, `test_handshake.py`,
+`test_proposals.py`, `test_checkpoint.py` — 103 tests total, all passing.
+Turns 132 and 133 applied in the Fork A test (`runs/sweeps/turn-132/`,
+`runs/sweeps/turn-133/`), Turn 134 handshake ready
+(`runs/handshakes/turn-134.md`). See `phase-2-plan.md`,
+`stage-1-plan.md`, and `test-harness.md`.
 
 ## Hard rules
 
@@ -83,9 +127,16 @@ living-world-engine/
     render.py             — world-view HTML from the DB
     run.py                — CLI
     seed.py               — seed loading (validates the freeze)
+    auto_tick.py          — daily auto tick runner (Phase 2)
+    sweep.py              — session-close sweep parser and validator
+    handshake.py          — handshake generator
+    proposals.py          — proposal intake and binding
+    checkpoint.py         — checkpoint and carried-state records
+    session.py            — session flag
+    drive_io.py           — proposal/handshake file exchange
   tests/
     fixture_seed.json     — TEST FIXTURE, synthetic actors, NOT canon
-    test_engine.py        — 14 acceptance tests
+    test_*.py             — 103 tests across 12 files
   runs/<run-id>/          — proof runs: database + world-view.html
 ```
 
@@ -93,7 +144,7 @@ living-world-engine/
 
 ```bash
 cd living-world-engine
-python3 -m unittest discover -s tests -v   # the 14 tests
+python3 -m unittest discover -s tests -v   # the 103 tests
 
 # A run (fixture shown; replace with seed/fork-a.json when Lore delivers):
 python3 -m src.run seed --seed tests/fixture_seed.json --db runs/proof-30/fork-a.sqlite

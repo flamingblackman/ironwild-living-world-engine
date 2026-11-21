@@ -13,6 +13,11 @@ from . import db
 
 
 def _effect_text(op):
+    # A skipped op (its `when` failed) never happened: it renders as
+    # nothing, never as if it applied. The log records what really
+    # happened, not what was requested. Callers filter out None.
+    if op.get("skipped"):
+        return None
     kind = op.get("op")
     if kind == "rest":
         return "rests"
@@ -45,6 +50,19 @@ def _effect_text(op):
         return f"{op['location']}: {', '.join(bits)}"
     if kind == "status_set":
         return f"{op['id']}: status -> {op['status']}"
+    if kind == "move":
+        return (f"{op['id']}: {op.get('old_location', '?')} -> "
+                f"{op['location']}")
+    if kind == "flag_set":
+        return f"flag {op.get('flag')}"
+    if kind == "sweep_clock":
+        return (f"sweep: clock {op['clock']} {op['old']} -> {op['new']} "
+                f"(Turn {op['source_turn']})")
+    if kind == "sweep_bond":
+        return (f"sweep: Bond {op['engine']} {op['old']} -> {op['new']} "
+                f"(Turn {op['source_turn']})")
+    if kind == "note":
+        return op.get("text", "note")
     if "era_closed" in op:
         return f"era closed: {op['era_closed']}"
     return json.dumps(op, sort_keys=True)
@@ -123,7 +141,8 @@ def render_world_view(conn, out_path):
     for r in conn.execute(
             "SELECT * FROM events ORDER BY id DESC LIMIT 20"):
         effect = json.loads(r["effect"])
-        text = "; ".join(_effect_text(op) for op in effect) or "-"
+        text = "; ".join(
+            t for t in (_effect_text(op) for op in effect) if t) or "-"
         evs.append(_td(f"Tick {r['tick']}") + _td(r["actor_id"]) +
                    _td(r["action"]) + _td(text))
     parts.append(_section("Recent events (latest 20)", evs))

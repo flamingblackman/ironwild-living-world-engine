@@ -1,0 +1,17 @@
+{
+  "changes": [
+    {
+      "id": "dust_baron_retaliation",
+      "kind": "clock",
+      "max": 6,
+      "name": "Dust-Baron Retaliation",
+      "new": 1,
+      "old": 0
+    }
+  ],
+  "findings": [],
+  "proposal_id": "prop-133-6326b917",
+  "review": "Sweep review \u2014 Turn 133 ForkA-vFINAL.2\nBased on: Turn 133 ForkA-vFINAL.2 | Last approved: Turn 132 ForkA-vFINAL.1\nScene: Great Basin \u2014 Legion Reconstruction Council | tension Low\nTrade-off (carried): Limited salvage and labor divided between fortifications, civilian welfare, and Engine recovery.\nChanges (1):\n  clock dust_baron_retaliation: 0 -> 1 (max 6)\nFindings: none.",
+  "state_version": "ForkA-vFINAL.2",
+  "turn": 133
+}

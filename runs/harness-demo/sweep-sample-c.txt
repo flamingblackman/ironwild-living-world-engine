@@ -1,0 +1,14 @@
+Sweep review — Turn 138 vFINAL.7
+Scene: Southern Aegis Gatehouse, Aegis Citadel of the Great Basin | tension Catastrophic
+Changes (2):
+  Bond sledge: 5 -> 3
+  Bond razor_back: 5 -> 3
+Findings:
+  [FLAG] CLOCK_UNKNOWN: clock 'Rider Army Mustering' is not in this world; clock-name mismatch, Lore review, never silently reconciled.
+  [FLAG] CLOCK_UNKNOWN: clock 'Sanctuary Integration' is not in this world; clock-name mismatch, Lore review, never silently reconciled.
+  [FLAG] CLOCK_UNKNOWN: clock 'Mother-Bulwark Rescue' is not in this world; clock-name mismatch, Lore review, never silently reconciled.
+  [FLAG] CLOCK_UNKNOWN: clock 'Outer Siege-Ring' is not in this world; clock-name mismatch, Lore review, never silently reconciled.
+  [FLAG] CLOCK_UNKNOWN: clock 'Northern Pass Approach' is not in this world; clock-name mismatch, Lore review, never silently reconciled.
+  [FLAG] PENDING_DECISION: Unresolved Decisions present; carried verbatim, never resolved by the sweep.
+Pending decision (verbatim): Secure the injured Mother-Bulwark inside the Citadel.
+dry run only — nothing applied. Re-run with --apply --approved-by NAME to apply after Bryan's approval.

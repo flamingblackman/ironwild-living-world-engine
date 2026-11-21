@@ -1,0 +1,26 @@
+{
+  "changes": [
+    {
+      "id": "dust_baron_retaliation",
+      "kind": "clock",
+      "max": 6,
+      "name": "Dust-Baron Retaliation",
+      "new": 1,
+      "old": 0
+    }
+  ],
+  "dry_run": false,
+  "findings": [],
+  "ok": true,
+  "proposal_binding": {
+    "applied_at": "2026-11-21T06:22:03.411015+00:00",
+    "approved_by": "Bryan",
+    "content_hash": "6326b91740b54dd0065488e3826b4db5e396445f51552f338d78bbdd415fa40b",
+    "drive_file_id": "1Q2QGRQPlZEsChkB1i0fJKq98PLgb60Uv",
+    "proposal_id": "prop-133-6326b917"
+  },
+  "proposal_id": "prop-133-6326b917",
+  "review": "Sweep review \u2014 Turn 133 ForkA-vFINAL.2\nBased on: Turn 133 ForkA-vFINAL.2 | Last approved: Turn 132 ForkA-vFINAL.1\nScene: Great Basin \u2014 Legion Reconstruction Council | tension Low\nTrade-off (carried): Limited salvage and labor divided between fortifications, civilian welfare, and Engine recovery.\nChanges (1):\n  clock dust_baron_retaliation: 0 -> 1 (max 6)\nFindings: none.",
+  "state_version": "ForkA-vFINAL.2",
+  "turn": 133
+}

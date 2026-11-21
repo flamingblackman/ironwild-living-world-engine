@@ -1,0 +1,65 @@
+{
+  "active_trade_off": "none",
+  "bonds": [
+    {
+      "bond": 3,
+      "engine": "Gold Sledge"
+    },
+    {
+      "bond": 5,
+      "engine": "Skytalon"
+    },
+    {
+      "bond": 3,
+      "engine": "Razor-Back"
+    },
+    {
+      "bond": 5,
+      "engine": "Goliath Dreadnought"
+    },
+    {
+      "bond": 5,
+      "engine": "Surveyor-Strider"
+    }
+  ],
+  "clocks": [
+    {
+      "max": 6,
+      "name": "Dust-Baron Retaliation",
+      "status": null,
+      "value": 0
+    },
+    {
+      "max": 6,
+      "name": "Concord Blockade",
+      "status": null,
+      "value": 0
+    },
+    {
+      "max": 6,
+      "name": "Legion Cohesion",
+      "status": null,
+      "value": 0
+    },
+    {
+      "max": 6,
+      "name": "Great Basin Recovery",
+      "status": null,
+      "value": 0
+    }
+  ],
+  "clocks_raw": "Dust-Baron Retaliation 0/6 | Concord Blockade 0/6 | Legion Cohesion 0/6 | Great Basin Recovery 0/6",
+  "pack": [
+    "Vance",
+    "Tull",
+    "Kaelen",
+    "Nest-Keeper"
+  ],
+  "pc_raw": "Brigus, Seedborn / King of the Great Basin. Wounds: None. Engines: Gold Sledge, Bond 3/5; Skytalon, Bond 5/5; Razor-Back, Bond 3/5; Goliath Dreadnought, Bond 5/5; Surveyor-Strider, Bond 5/5. Pack: Vance, Tull, Kaelen, Nest-Keeper.",
+  "pending_decision": null,
+  "scene": "Great Basin",
+  "scene_tension": "Low",
+  "state_version": "ForkA-vFINAL.1",
+  "turn": 132,
+  "wounds": "None"
+}

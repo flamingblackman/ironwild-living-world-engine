@@ -59,7 +59,7 @@ def score_actions(conn, actor, catalog):
         if not conditions.clauses_hold(conn, action.get("trigger") or []):
             continue
         need = sum(1 for c in (action.get("need") or [])
-                   if conditions.clause_holds(conn, c))
+                   if conditions.condition_holds(conn, c))
         score = float(action.get("weight", 5)) + need
         scored.append((score, action))
     scored.sort(key=lambda item: item[0], reverse=True)

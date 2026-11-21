@@ -1,0 +1,2 @@
+2026-11-21 outcome=ticked tick=1 events=0->11 state=66e6db9c0358
+2026-11-21 outcome=refused tick=1 events=11->11 state=66e6db9c0358 reason=already_ticked_today: the world already ticked on 2026-11-21

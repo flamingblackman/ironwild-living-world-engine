@@ -1,0 +1,33 @@
+{
+  "clocks_about_to_fire": [],
+  "events_covered": [
+    71,
+    70,
+    69,
+    68,
+    67,
+    66,
+    65,
+    64,
+    63,
+    62,
+    61,
+    60,
+    59,
+    58,
+    57,
+    56,
+    55,
+    54,
+    53,
+    52
+  ],
+  "rumor_sources": [
+    67,
+    65
+  ],
+  "rumors": 2,
+  "tick": 6,
+  "words": 578,
+  "world_id": "ironwild-fork-a"
+}

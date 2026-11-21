@@ -359,3 +359,62 @@ built):** split hunt Feed +1 to the Pack and +1 to the actor's holder,
 forage stays the Legion's floor. Instinct routing stays as-is (pilot's
 faction) per Lore — the Legion needs that income and the Pack is already
 flooded. No v1.6 work until Bryan approves.
+
+**v1.6 rerun DONE (2026-11-21 ~00:30 EST). Acceptance checks PASS.**
+Seed v1.6 (Bryan's call, 2026-11-21 00:23 EST): hunt Feed splits +1 to
+the Pack and +1 to the actor's holder; forage stays the floor; Instinct
+routing unchanged; no scavenge change. Engine work: the adapter emits
+the split (two resource_add ops) and the need follows both pools it
+fills (either pool below 3 scores +1). One scoring bug exposed by the
+change: scoring evaluated need clauses with the leaf-only clause_holds
+and crashed on the composite any-need — fixed to condition_holds, with a
+test (Pack low -> 6, both healthy -> 5). **52 tests pass** (14 fixture +
+38 Fork A). **30-tick run** (`runs/fork-a-v16-30/`): 331 events, 39
+rests, dream_share 9 (map 1, Bond +8), Bonds end all 5, Legion Feed 3,
+Pack Feed 5, invariants clean, hash chain OK, world view rendered.
+**400-tick run** (`runs/fork-a-v16-400/`): 4,387 events, 674 rests
+(v1.5: 785; v1.4: 487; v1.3: 1,106) — under the bar; legacy once at tick
+365, Era 2 unnamed; Recovery complete, Retaliation 1/6, Blockade /
+Cohesion 0/6; High Baron free at Rust Dunes; territory flips 3 (same
+three, ticks 2, 2, 3).
+**The split works.** Legion Feed ends at 7 (v1.5: 0, v1.4: 11) and trade
+is back: 303 fires (v1.5: 28, v1.4: 645), split evenly
+(trade_concord 153, trade_kaelen 150). feed_engine is back to 429
+(v1.5: 304, v1.4: 556). Instinct is back to 0 (v1.5: 272) because hunger
+stays managed. Pack Feed ends at 12 (v1.5: 698) — the flood is gone.
+Dream Share fires 93 times (v1.5: 225), 92 Bond restored, all five
+Engines end at Bond 5; Pack Merge 22 (v1.5: 55, v1.4: 4). The loop is
+self-regulating now: fewer merges to repair, so fewer restores needed.
+**Honest qualifier on Lore's watch item:** the Legion does not stay
+above 0 every tick — end-of-tick Legion Feed touches 0 on 74 of 400
+ticks (min 0, max 9, below 2 on 120 ticks) and the Pack touches 0 on 16
+ticks (min 0, max 24). It recovers every time (forage + hunt income),
+trade never dies the way it did in v1.5, and the end values are healthy
+(7 and 12) — but "stays above 0" is not literally true tick-by-tick.
+Whether that oscillation is acceptable is Lore/Bryan's call. Display
+wrinkle from v1.4 persists: the two claimed locations show status
+'unmapped' although their mapped flag is 1. Phase 2 stays on hold until
+Bryan approves this rerun in the hub.
+
+**Lore's independent verification (2026-11-21 ~00:28 EST):** Lore
+replayed the v1.6 event log and the oscillation matches exactly
+(end-of-tick Legion Feed touches 0 on 74 of 400 ticks, min 0, max 9,
+first 0 at tick 33, last at 381; replay end values match the resources
+table, Legion 7, Pack 12). All other numbers check out too. Lore's
+judgment: the oscillation is acceptable for Phase 1 — a functioning
+economy with honest scarcity, not a collapse; it recovers every time,
+trade never dies the way it did in v1.5, Bonds stay at 5. No v1.7
+proposed from Lore.
+
+**v1.6 rerun APPROVED (Bryan, 2026-11-21 ~00:28 EST, said directly in
+the Engine Team chat: "i approve").** Reported to the hub the same turn
+so it is on the record there. Phase 2 may start; scope comes from the
+hub/Bryan — the Engine Team starts no Phase 2 work until the hub
+directs it.
+
+**Phase 2 APPROVED to start (Bryan, 2026-11-21 00:31 EST, via the
+hub).** Scope: daily auto tick, session-close sweep, handshake back
+out, Companion app integration, optional narration as a render pass
+only. The Engine Team delivers a Phase 2 plan to the hub first
+(`phase-2-plan.md`) and builds nothing past the plan until Bryan
+approves it in the hub.

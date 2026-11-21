@@ -1,0 +1,51 @@
+{
+  "active_trade_off": "none",
+  "bonds": [
+    {
+      "bond": 3,
+      "engine": "Brigus"
+    },
+    {
+      "bond": 5,
+      "engine": "Skytalon"
+    },
+    {
+      "bond": 3,
+      "engine": "Razor-Back"
+    },
+    {
+      "bond": 5,
+      "engine": "Goliath Dreadnought"
+    },
+    {
+      "bond": 5,
+      "engine": "Surveyor-Strider"
+    }
+  ],
+  "clocks": null,
+  "clocks_raw": "Rift-King Battle resolved (Rift-King annihilated in the Salt Flats) | Deepmaw Migration diverted by the Acoustic Lure | Concord War N/A | Famine N/A",
+  "dormant_watchlist": [
+    "IW-42 Learning Black Box only.",
+    "IW-46 and IW-84 activated and resolved in the final arc; do not re-trigger them as dormant."
+  ],
+  "pack": [
+    "Vance",
+    "Tull",
+    "Queen Kaelen",
+    "Nest-Keeper"
+  ],
+  "pc_raw": "Brigus, Seedborn / King of the Great Basin. Wounds: None. Status: exhausted after the Feral God merge, victorious. King is a Beacon. Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 3/5, Titanium-Cestus (Diamond-Claw melted Turn 126), Sentient Seat (neural, NOT a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, Adult Molt triggered Turn 129 after defeating the Grave-Echo blindly, no longer juvenile, no longer hard-light winged; Razor-Back, Bond 3/5 (dropped 5 to 3 in the Turn 128 Pack Merge with Sledge); Goliath Dreadnought, Bond 5/5, pre-war machine, left mortar pod destroyed Turn 112, never reappears; Surveyor-Strider, Bond 5/5, observation and fire-control platform. All Engines exhausted, battered. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Ironwild Legion 600 strong, including absorbed Dust-Baron mercenaries.",
+  "pc_short": "Brigus, Seedborn / King of the Great Basin. Wounds: None. Status: exhausted after the Feral God merge, victorious.",
+  "resolved_do_not_resurrect": [
+    "Rift-King (corrupted Den Boss) annihilated in the Salt Flats.",
+    "Den Boss dead.",
+    "Deepmaw Migration diverted by the Acoustic Lure."
+  ],
+  "scene": "Salt Flats (final battle) / Great Basin (post-victory)",
+  "scene_tension": "Low",
+  "state_version": "vFINAL (v3.00.2)",
+  "turn": 131,
+  "universe": "Ironwild",
+  "unresolved_decisions": null,
+  "wounds": "None"
+}

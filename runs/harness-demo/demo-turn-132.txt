@@ -1,0 +1,7 @@
+[TURN STATE]
+Universe: Ironwild | State-Version: vFINAL.1 | Turn: 132
+Clocks: Dust-Baron Retaliation 2/6 | Concord Blockade 0/6 | Legion Cohesion 0/6 | Great Basin Recovery 0/6
+Scene: Great Basin | SCENE_TENSION: Low | ACTIVE_TRADE_OFF: none
+Player character: Brigus, Seedborn / King of the Great Basin. Wounds: None. Engines: Gold Sledge, Bulwark, Bond 4/5; Skytalon, Bond 5/5; Razor-Back, Bond 3/5; Goliath Dreadnought, Bond 5/5; Surveyor-Strider, Bond 5/5. Pack: Vance, Tull, Kaelen, Nest-Keeper.
+Unresolved Decisions: none
+[/TURN STATE]

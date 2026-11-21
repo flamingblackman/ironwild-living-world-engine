@@ -1,0 +1,10 @@
+{
+  "acceptance": "FAIL",
+  "acceptance_failures": 2,
+  "drift": 2,
+  "events": 39,
+  "pending_decision": null,
+  "state_hash": "5c27714a2de91cb56210bd76f596761acb20f27200120155930cf02fff4421cc",
+  "tick": 3,
+  "turn": 132
+}

@@ -1,0 +1,8 @@
+Sweep review — Turn 131 vFINAL (v3.00.2)
+Scene: Salt Flats (final battle) / Great Basin (post-victory) | tension Low
+Changes (2):
+  Bond sledge: 5 -> 3
+  Bond razor_back: 5 -> 3
+Findings:
+  [FLAG] NO_CLOCKS_PARSED: Clocks field is not in Name value/max form; carried as text, no clock changes applied.
+dry run only — nothing applied. Re-run with --apply --approved-by NAME to apply after Bryan's approval.

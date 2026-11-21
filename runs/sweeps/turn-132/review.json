@@ -1,0 +1,18 @@
+{
+  "changes": [
+    {
+      "id": "great_basin_recovery",
+      "kind": "clock",
+      "max": 6,
+      "name": "Great Basin Recovery",
+      "new": 1,
+      "old": 0
+    }
+  ],
+  "dry_run": false,
+  "findings": [],
+  "ok": true,
+  "review": "Sweep review \u2014 Turn 132 ForkA-vFINAL.1\nBased on: Turn 132 ForkA-vFINAL.1 | Last approved: Turn - -\nScene: Great Basin \u2014 Legion Reconstruction Council | tension Low\nTrade-off (carried): Limited salvage and labor divided between fortifications, civilian welfare, and Engine recovery.\nClocks carried as text (context, not running clocks): Rift-King Battle resolved (Rift-King annihilated in the Salt Flats); Deepmaw Migration diverted by the Acoustic Lure; Concord War N/A; Famine N/A\nChanges (1):\n  clock great_basin_recovery: 0 -> 1 (max 6)\nFindings: none.",
+  "state_version": "ForkA-vFINAL.1",
+  "turn": 132
+}

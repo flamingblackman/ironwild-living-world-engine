@@ -1,16 +1,17 @@
 """Fork A acceptance tests — the real Lore seed (seed/fork-a.json via the
 adapter), not the fixture.
 
-Seed v1.5 (2026-11-21, Bryan's call, combined fix options 1 + 3): the v1.3
-quiet-world fix (forage, scavenge, claim — floors, not floods), v1.4 Bond
-recovery through Dream Share (option C), and v1.5 hunt Feed to the Pack
-plus Dream Share as a scored action, not a rest hook. The 30-tick and
-400-tick acceptance runs must complete, the quiet must stay fixed (far
-fewer rests than v1.3's 1,106 in 400 ticks), Dream Share must fire and
-Bond must recover, and at least one territory controller flip must be
-proven on real seed data.
+Seed v1.6 (2026-11-21, Bryan's call): the v1.3 quiet-world fix (forage,
+scavenge, claim — floors, not floods), v1.4 Bond recovery through Dream
+Share (option C), v1.5 hunt Feed to the Pack plus Dream Share as a scored
+action, and v1.6 hunt Feed split +1 Pack / +1 holder (the v1.5 routing
+starved the Legion). The 30-tick and 400-tick acceptance runs must
+complete, the quiet must stay fixed (far fewer rests than v1.3's 1,106 in
+400 ticks), Dream Share must fire and Bond must recover, the Legion's
+Feed must stay balanced, and at least one territory controller flip must
+be proven on real seed data.
 
-Drift rules DC-01..DC-19 are each checked where the plan's test files map
+Drift rules DC-01..DC-20 are each checked where the plan's test files map
 them (noted per test).
 """
 
@@ -343,21 +344,29 @@ class TestForkRules(unittest.TestCase):
         self.assertIn("dream_share", machine_ids)
         self.assertNotIn("hooks", internal)
 
-    def test_hunt_feeds_the_pack_not_the_holder(self):
-        # DC-19 (v1.5): hunt Feed goes to the pack holder, and the hunt
-        # scores higher while Pack Feed is below 3.
+    def test_hunt_splits_feed_pack_and_holder(self):
+        # DC-19 (v1.6, supersedes the v1.5 routing) + DC-20: hunt Feed
+        # splits +1 to the Pack and +1 to the actor's holder, and the
+        # hunt scores higher while either pool is below 3.
         internal = load_internal_seed()
         hunt = [a for a in internal["actions"] if a["id"] == "hunt"][0]
-        feed_op = [o for o in hunt["effect"]
-                   if o.get("op") == "resource_add"
-                   and o.get("resource") == "Feed"][0]
-        self.assertEqual(feed_op["holder"], "pack")
-        self.assertEqual(feed_op["holder_kind"], "pack")
-        self.assertEqual(feed_op["qty"], 2)
+        feed_ops = [o for o in hunt["effect"]
+                    if o.get("op") == "resource_add"
+                    and o.get("resource") == "Feed"]
+        self.assertEqual(len(feed_ops), 2)
+        by_holder = {o["holder"]: o for o in feed_ops}
+        self.assertEqual(by_holder["pack"]["qty"], 1)
+        self.assertEqual(by_holder["pack"]["holder_kind"], "pack")
+        self.assertEqual(by_holder["{holder}"]["qty"], 1)
+        self.assertEqual(by_holder["{holder}"]["holder_kind"], "faction")
         need = hunt["need"][0]
-        self.assertEqual(need["kind"], "resource")
-        self.assertEqual(need["holder"], "pack")
-        self.assertEqual(need["value"], 3)
+        self.assertIn("any", need)
+        holders = {(c["holder"], c["holder_kind"])
+                   for c in need["any"]}
+        self.assertEqual(holders, {("pack", "pack"),
+                                   ("{holder}", "faction")})
+        for clause in need["any"]:
+            self.assertEqual(clause["value"], 3)
 
     def test_render_handles_bond_add_without_pilot(self):
         # v1.5 exposed this: Dream Share firing is the first bond_add to
@@ -439,6 +448,35 @@ class TestForkMechanics(unittest.TestCase):
             ).fetchone()
             self.assertEqual(row["status"], "active")
             self.assertEqual(row["location_id"], "rust_dunes")
+            conn.close()
+
+    def test_hunt_need_is_either_pool_low(self):
+        # DC-19 (v1.6): the hunt's need is a composite condition (either
+        # pool below 3), and scoring must evaluate it — the old code
+        # called the leaf-only clause_holds on needs and crashed on any
+        # composite need. Pack low -> 6; both healthy -> 5.
+        from src import scoring
+        with tempfile.TemporaryDirectory() as tmp:
+            conn, seed_data = fresh_fork_db(os.path.join(tmp, "fork.sqlite"))
+            hunt = [a for a in seed_data["actions"]
+                    if a["id"] == "hunt"][0]
+            # Score like _act does: substitute the actor's placeholders
+            # first ({location}, {holder}), or the trigger matches nothing.
+            mapping = tick_mod._placeholders(
+                conn, {"id": "brigus", "kind": "npc"})
+            hunt = tick_mod._substitute(hunt, mapping)
+            conn.execute("UPDATE resources SET qty = 2 WHERE holder_id = "
+                         "'pack' AND resource = 'Feed'")
+            conn.execute("UPDATE resources SET qty = 10 WHERE holder_id = "
+                         "'ironwild_legion' AND resource = 'Feed'")
+            scored = scoring.score_actions(
+                conn, {"id": "brigus", "kind": "npc"}, [hunt])
+            self.assertEqual(scored[0][0], 6)
+            conn.execute("UPDATE resources SET qty = 10 WHERE holder_id = "
+                         "'pack' AND resource = 'Feed'")
+            scored = scoring.score_actions(
+                conn, {"id": "brigus", "kind": "npc"}, [hunt])
+            self.assertEqual(scored[0][0], 5)
             conn.close()
 
     def test_dream_share_maps_an_unmapped_location(self):

@@ -1,0 +1,7 @@
+[TURN STATE]
+Universe: Ironwild | State-Version: vFINAL.7 | Turn: 138
+Clocks: Rider Army Mustering 5/6 | Sanctuary Integration 6/6 (Complete) | Mother-Bulwark Rescue 3/4 | Outer Siege-Ring 4/6 | Northern Pass Approach 6/6 (Detonated)
+Scene: Southern Aegis Gatehouse, Aegis Citadel of the Great Basin | SCENE_TENSION: Catastrophic | ACTIVE_TRADE_OFF: secure the injured Mother-Bulwark inside the Citadel
+Player character: Brigus, Seedborn / King of the Great Basin. Wounds: None. Status: exhausted after the Feral God merge, victorious, now defending the Aegis Citadel. Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 3/5, Titanium-Cestus (Diamond-Claw melted Turn 126), Sentient Seat (neural, NOT a saddle-harness), shielded the Mother-Bulwark; Skytalon, ADULT Shadow-Owl, Bond 5/5, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, severed all three harpoon cables; Razor-Back, Bond 3/5, exhausted from the Pack Merge; Goliath Dreadnought, Bond 5/5, pre-war machine; Surveyor-Strider, Bond 5/5. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Faction: Ironwild Legion. Mother-Bulwark free, 3 Seed Cores protected, injured (damaged forelimb), not yet inside the Citadel.
+Unresolved Decisions: Secure the injured Mother-Bulwark inside the Citadel.
+[/TURN STATE]

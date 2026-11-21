@@ -134,34 +134,36 @@ def _hunt():
         [{"kind": "location_is", "location": "{location}",
           "loc_kind": "wreck", "mapped": True}],
     ]}
-    a["need"] = [res("pack", "pack", "Feed", "<", 3)]
+    a["need"] = [{"any": [
+        res("pack", "pack", "Feed", "<", 3),
+        res("{holder}", "faction", "Feed", "<", 3),
+    ]}]
     a["effect"] = [
         {"op": "resource_add", "holder": "pack", "holder_kind": "pack",
-         "resource": "Feed", "qty": 2},
+         "resource": "Feed", "qty": 1},
+        {"op": "resource_add", "holder": "{holder}",
+         "holder_kind": "faction", "resource": "Feed", "qty": 1},
         {"op": "hunger_add",
          "engine": {"target": "engine_at_location",
                     "location": "{location}", "prefer": "highest_hunger",
                     "min_hunger": 0},
          "qty": -2},
     ]
-    note("hunt (v1.5, Bryan's call, combined fix options 1 + 3): the "
-         "hunt feeds the Pack — Feed +2 goes to the pack holder, not "
-         "the actor's faction. v1.0-v1.4 routed it to the actor's holder "
-         "(the Legion for four hunters, the Nest-Keepers for the "
-         "Nest-Keeper), which starved the Pack's Feed pool and left "
-         "Dream Share's Bond branch unable to fire. The need follows "
-         "the pool it fills: the hunt scores higher while Pack Feed is "
-         "below 3. The hunting Engine is the neediest Engine at the "
-         "actor's location (shared pool; no pilot beyond Brigus-Sledge). "
-         "If no Engine is present, the hunger op is skipped and only "
-         "the Feed gain lands. Trigger is the seed's OR: an Engine at "
-         "Hunger >= 3, or the actor's location is a mapped wreck. "
-         "NOTE — Instinct hunts (tick step 3) still feed the pilot's "
-         "faction per the plan's rule (Sledge's Instinct hunts feed the "
-         "Legion); the seed changed the hunt action only, so the engine "
-         "does not reroute Instinct on its own. Lore may decide that in "
-         "a later seed; the rerun measures how much Legion Feed still "
-         "comes from Instinct.")
+    note("hunt (v1.6, Bryan's call, 2026-11-21 00:23 EST, supersedes the "
+         "v1.5 routing): the hunt feeds both pools — Feed +1 to the Pack "
+         "and +1 to the actor's holder. v1.5 routed all hunt Feed to the "
+         "Pack, which fixed the Pack but starved the Legion (Legion Feed "
+         "ended at 0, trade collapsed to 28, forage alone at 108 fires "
+         "could not sustain it) and flooded the Pack to 698 Feed. The "
+         "need follows the pools it fills: the hunt scores higher while "
+         "either pool is below 3. The hunting Engine is the neediest "
+         "Engine at the actor's location (shared pool; no pilot beyond "
+         "Brigus-Sledge). If no Engine is present, the hunger op is "
+         "skipped and only the Feed gains land. Trigger is the seed's OR: "
+         "an Engine at Hunger >= 3, or the actor's location is a mapped "
+         "wreck. NOTE — Instinct hunts (tick step 3) still feed the "
+         "pilot's faction per the plan's rule; the seed does not change "
+         "Instinct in v1.6 either (DC-20).")
     return a
 
 
@@ -726,11 +728,18 @@ def translate(lore):
          "2+ Feed), so it never fires as a no-op. Seedborns stay "
          "extremely rare: Brigus is the only Seedborn in Fork A; no "
          "other Seedborn is added.")
-    note("Combined fix (v1.5, DC-19, Bryan's call, options 1 + 3): hunt "
-         "Feed goes to the Pack, not the actor's holder, so the Pack's "
-         "Feed pool now has an income; Dream Share is a scored action, "
+    note("Combined fix (v1.5, DC-19, Bryan's call, options 1 + 3; hunt "
+         "routing superseded in v1.6, DC-19 rewritten, DC-20 added): hunt "
+         "Feed splits +1 to the Pack and +1 to the actor's holder, so "
+         "both pools have an income; Dream Share is a scored action, "
          "not a rest hook, so Brigus can choose it while other actions "
-         "are legal. Bond branch rules are unchanged from v1.4.")
+         "are legal. Bond branch rules are unchanged from v1.4. Forage "
+         "stays the Legion's Feed floor; Instinct routing is unchanged "
+         "(the plan's rule, pilot's faction); scavenge is unchanged (the "
+         "Legion variant fires; the Dust Baron and Breakers variants do "
+         "not fire for good reasons — see the scavenge finding in plan "
+         "section 14). No other action's trigger or effect changes in "
+         "v1.6.")
     note("Feed burn (Engine Team's rate; the seed delegates it and sets no "
          "canon rate): the city (Ironwild Legion) burns 1 Feed/tick and "
          "the Pack burns 1 Feed/tick, from tick 1, clamped at zero, "

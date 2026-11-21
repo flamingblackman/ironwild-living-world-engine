@@ -1,0 +1,16 @@
+{
+  "approved_by": "Bryan (01:03 EST formal-review approval: clock only, salvage stays at 12)",
+  "change": {
+    "holder": "ironwild_legion",
+    "holder_kind": "faction",
+    "kind": "resource",
+    "new": 2,
+    "old": 1,
+    "resource": "Salvage"
+  },
+  "kind": "correction",
+  "note": "The 00:56 EST approval included Salvage 12 -> 11 and was applied (event 2); the 01:03 EST approval of the formal review dropped it. This +1 reverses the erroneous -1. Replay check: the +1 offset changes no tick trigger or score, so the 3 ticks' action history is identical under the correct base. Clock change (event 1) not re-applied.",
+  "ok": true,
+  "reverses_event": 2,
+  "turn": 132
+}

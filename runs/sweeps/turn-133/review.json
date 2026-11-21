@@ -1,0 +1,15 @@
+{
+  "changes": [],
+  "dry_run": false,
+  "findings": [
+    {
+      "code": "PENDING_DECISION",
+      "level": "flag",
+      "message": "Unresolved Decisions present; carried verbatim, never resolved by the sweep."
+    }
+  ],
+  "ok": true,
+  "review": "Sweep review \u2014 Turn 133 ForkA-vFINAL.2\nBased on: Turn 133 ForkA-vFINAL.2 | Last approved: Turn 132 ForkA-vFINAL.1\nScene: Great Basin \u2014 Legion Engineering Grounds | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges: none \u2014 the block matches the DB.\nFindings:\n  [FLAG] PENDING_DECISION: Unresolved Decisions present; carried verbatim, never resolved by the sweep.\nPending decision (verbatim): \"What kind of elite force should the engineers develop?\"",
+  "state_version": "ForkA-vFINAL.2",
+  "turn": 133
+}

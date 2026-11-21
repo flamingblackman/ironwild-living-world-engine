@@ -14,7 +14,14 @@
      "holder": "pack",
      "holder_kind": "pack",
      "op": "resource_add",
-     "qty": 2,
+     "qty": 1,
+     "resource": "Feed"
+    },
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
      "resource": "Feed"
     },
     {
@@ -32,12 +39,24 @@
    "id": "hunt",
    "need": [
     {
-     "holder": "pack",
-     "holder_kind": "pack",
-     "kind": "resource",
-     "op": "<",
-     "resource": "Feed",
-     "value": 3
+     "any": [
+      {
+       "holder": "pack",
+       "holder_kind": "pack",
+       "kind": "resource",
+       "op": "<",
+       "resource": "Feed",
+       "value": 3
+      },
+      {
+       "holder": "{holder}",
+       "holder_kind": "faction",
+       "kind": "resource",
+       "op": "<",
+       "resource": "Feed",
+       "value": 3
+      }
+     ]
     }
    ],
    "trigger": {
