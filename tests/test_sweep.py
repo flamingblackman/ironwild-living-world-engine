@@ -10,7 +10,7 @@ import os
 import tempfile
 import unittest
 
-from helpers import fresh_fork_db
+from helpers import fresh_fork_b_db, fresh_fork_db
 from src import db, events, sweep as sweep_mod
 
 SAMPLE_A = """[TURN STATE]
@@ -500,6 +500,96 @@ class TestRealDmBlock(unittest.TestCase):
                "resource": "Salvage", "old": 11, "new": 10}]
         with self.assertRaises(sweep_mod.SweepError):
             sweep_mod.diff(p, conn, rc)
+        conn.close()
+
+
+class TestForkBBlockFormat(unittest.TestCase):
+    """Fork B Turns 1-4 (2026-11-21) were all rejected on intake with
+    CLOCK_UNKNOWN and ENGINE_UNKNOWN. The blocks were valid story
+    turns; the parser only knew Fork A's block format. Two gaps:
+    comma-joined clocks ("Engine Awakening 1/6, Dust-Baron
+    Retaliation 0/6, Caravan Route 0/6") and prose Bond lines
+    ("Ashfang is a wolf Bulwark and Ragnus's only Engine, Bond 1/5")."""
+
+    def test_comma_joined_clocks(self):
+        clocks = ("Engine Awakening 1/6, Dust-Baron Retaliation 0/6, "
+                  "Caravan Route 0/6")
+        p = sweep_mod.parse_state_block(_block(
+            1, "ForkB-v1.0", clocks,
+            "Rin, Seedborn. Wounds: None. Ashfang is Bond 1/5. "
+            "Pack: Pike."))
+        self.assertEqual(
+            [(c["name"], c["value"], c["max"]) for c in p["clocks"]],
+            [("Engine Awakening", 1, 6),
+             ("Dust-Baron Retaliation", 0, 6),
+             ("Caravan Route", 0, 6)])
+        self.assertEqual(p["clocks_text"], [])
+
+    def test_comma_inside_parenthetical_not_split(self):
+        clocks = ("Engine Awakening 1/6 (proposed, pending approval), "
+                  "Dust-Baron Retaliation 0/6")
+        p = sweep_mod.parse_state_block(_block(
+            1, "ForkB-v1.0", clocks,
+            "Rin, Seedborn. Wounds: None. Ashfang is Bond 1/5. "
+            "Pack: Pike."))
+        self.assertEqual(
+            [(c["name"], c["value"], c["max"]) for c in p["clocks"]],
+            [("Engine Awakening", 1, 6),
+             ("Dust-Baron Retaliation", 0, 6)])
+        self.assertIsNone(p["clocks"][0]["status"])
+
+    def test_bonds_prose_is_form(self):
+        # Fork B Turn 2: "Ashfang is a wolf Bulwark and Ragnus's only
+        # Engine, Bond 1/5" — the engine name is the part before
+        # " is ".
+        pc = ("Ragnus, Seedborn scavenger of the Great Basin. Wounds: "
+              "None. Status: newly bonded in the Rust Dunes, following "
+              "Ashfang's lead. Ashfang is a wolf Bulwark and Ragnus's "
+              "only Engine, Bond 1/5, newly awakened and battered, with "
+              "a scrap-claw and a neural Sentient Seat. Pack: Pike.")
+        p = sweep_mod.parse_state_block(_block(
+            2, "ForkB-v1.1",
+            "Engine Awakening 1/6, Dust-Baron Retaliation 0/6, "
+            "Caravan Route 0/6", pc))
+        self.assertEqual(
+            [(b["engine"], b["bond"]) for b in p["bonds"]],
+            [("Ashfang", 1)])
+        # Fork B Turn 1: "Ashfang is Bond 1/5" (name, then "is").
+        pc1 = ("Rin, Seedborn, scavenger of the Great Basin. Wounds: "
+               "None. Status: newly bonded, standing in the Rust Dunes "
+               "with Ashfang, a wolf Bulwark that just woke for them. "
+               "Ashfang is Rin's only Engine; Ashfang is Bond 1/5, newly "
+               "awakened and battered. Pack: Rin and Pike.")
+        p1 = sweep_mod.parse_state_block(_block(
+            1, "ForkB-v1.0",
+            "Engine Awakening 1/6, Dust-Baron Retaliation 0/6, "
+            "Caravan Route 0/6", pc1))
+        self.assertEqual(
+            [(b["engine"], b["bond"]) for b in p1["bonds"]],
+            [("Ashfang", 1)])
+
+    def test_fork_b_turn_1_block_validates(self):
+        # The verbatim Fork B Turn 1 block ChatGPT saved (2026-11-21).
+        # Before the parser fix it was rejected with CLOCK_UNKNOWN and
+        # ENGINE_UNKNOWN; after the fix it validates with no errors.
+        block = """[TURN STATE]
+Universe: Ironwild | State-Version: ForkB-v1.0 | Turn: 1
+Clocks: Engine Awakening 1/6, Dust-Baron Retaliation 0/6, Caravan Route 0/6
+Scene: Rust Dunes — Half-Buried Wreck Field | SCENE_TENSION: Low | ACTIVE_TRADE_OFF: The Engine is awake and bonded, but it is battered and the dunes are Breaker territory; getting it home means crossing poacher ground.
+Player character: Rin, Seedborn, scavenger of the Great Basin. Wounds: None. Status: newly bonded, standing in the Rust Dunes with Ashfang, a wolf Bulwark that just woke for them. Ashfang is Rin's only Engine; Ashfang is Bond 1/5, newly awakened and battered, equipped with a scrap-claw and a neural Sentient Seat (not a saddle-harness). Rin rides via the neural Sentient Seat. Pack: Rin and Pike, two people and one wolf. Pike is Rin's fellow scavenger, present in the Rust Dunes. Faction: Great Basin.
+Unresolved Decisions: What does Rin do with the awakened Engine — bring it home to the Great Basin, hide it from the Breakers, or follow where it wants to go?
+[/TURN STATE]
+"""
+        p = sweep_mod.parse_state_block(block)
+        conn, _ = fresh_fork_b_db(os.path.join(tempfile.mkdtemp(),
+                                              "fork-b.sqlite"))
+        findings = sweep_mod.validate(p, conn)
+        self.assertEqual(
+            [f for f in findings if f["level"] == "error"], [])
+        self.assertFalse(any(f["code"] == "CLOCK_UNKNOWN"
+                             for f in findings))
+        self.assertFalse(any(f["code"] == "ENGINE_UNKNOWN"
+                             for f in findings))
         conn.close()
 
 

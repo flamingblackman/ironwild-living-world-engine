@@ -26,8 +26,10 @@ from src import db, forks, render
 _BOND_RE = re.compile(r"Bond\s+(\d+)/5")
 
 # The status word right after an engine's Bond in the PC line:
-# "exhausted" or "field-patched", the only engine statuses so far.
-_STATUS_RE = re.compile(r",\s*(exhausted|field-patched)")
+# "exhausted", "field-patched", or (Fork B) "newly awakened and
+# battered" — the only engine statuses so far.
+_STATUS_RE = re.compile(
+    r",\s*(exhausted|field-patched|newly awakened and battered)")
 
 MAX_WORDS = 600
 MAX_RUMORS = 3

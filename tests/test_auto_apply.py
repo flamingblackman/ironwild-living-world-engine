@@ -169,6 +169,31 @@ class TestAutoApplyEligible(unittest.TestCase):
                             for m in _messages(reasons)))
         conn.close()
 
+    def test_unchanged_pending_decision_does_not_block(self):
+        # Fork B Turn 1 (2026-11-21): the opening decision is the
+        # canon decision, not a change — but the PENDING_DECISION
+        # finding ("carried verbatim") is always present while a
+        # decision stands. It must not create a FINDINGS reason by
+        # itself, or no turn carrying a pending decision could ever
+        # auto-apply or reach Lore.
+        tmp = tempfile.mkdtemp()
+        conn, _ = fresh_fork_db(os.path.join(tmp, "fork.sqlite"))
+        flag = os.path.join(tmp, "session.json")
+        decision = ("\"What kind of elite force should the engineers "
+                    "develop?\"")
+        first = _block(decisions=decision)
+        parsed = sweep_mod.parse_state_block(first)
+        sweep_mod.apply_sweep(parsed, conn, approved_by="Bryan",
+                              flag_path=flag)
+        conn.commit()
+        eligible, reasons = _check(
+            _block(turn=133, version="ForkA-vFINAL.2",
+                   decisions=decision),
+            conn, flag)
+        self.assertTrue(eligible)
+        self.assertEqual(reasons, [])
+        conn.close()
+
     def test_open_session_flag_is_not_eligible(self):
         tmp = tempfile.mkdtemp()
         conn, _ = fresh_fork_db(os.path.join(tmp, "fork.sqlite"))

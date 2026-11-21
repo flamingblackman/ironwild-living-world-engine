@@ -87,12 +87,22 @@ def check_eligible(parsed, findings, changes, conn, flag_path=None):
         reasons.append(_reason(
             REASON_CHANGES,
             "has %d change(s): %s" % (len(changes), kinds)))
-    if findings:
+    # The PENDING_DECISION finding is informational ("carried verbatim,
+    # never resolved by the sweep") — the actual pending-decision
+    # change is checked separately below as a PENDING_DECISION reason.
+    # It must not block auto-apply or a Lore call by itself, or no
+    # turn carrying a pending decision could ever take either path
+    # (Fork B Turn 1: the opening decision is the canon decision,
+    # not a change — but the flag is always present while a decision
+    # stands, so it would hold every such turn for Bryan).
+    blocking = [f for f in findings
+                if f["code"] != "PENDING_DECISION"]
+    if blocking:
         reasons.append(_reason(
             REASON_FINDINGS,
             "has %d finding(s): %s"
-            % (len(findings),
-               ", ".join(f["code"] for f in findings))))
+            % (len(blocking),
+               ", ".join(f["code"] for f in blocking))))
     last_swept = db.get_meta(conn, "last_swept_turn")
     world_id = db.get_meta(conn, "world_id", "ironwild-fork-a")
     expected_turn = ((int(last_swept) + 1) if last_swept is not None

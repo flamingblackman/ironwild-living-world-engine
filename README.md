@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3%20stdlib%20only-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![SQLite](https://img.shields.io/badge/SQLite-Single%20source%20of%20truth-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
-[![Tests](https://img.shields.io/badge/Tests-146%20passing-brightgreen?style=flat)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-151%20passing-brightgreen?style=flat)](tests/)
 [![Status](https://img.shields.io/badge/Status-Stage%202%20LIVE-brightgreen?style=flat)](stage-2-plan.md)
 
 </div>
@@ -40,7 +40,7 @@ flowchart TD
 | Cast | 10 NPCs · 5 Engines · 6 factions · 7 locations |
 | Catalog | 18 actions · 4 clocks · era 365 ticks |
 | Engine | Python 3 stdlib + SQLite, no LLM ever writes state |
-| Proof | 146 tests passing · 400-tick fast-forward · hash-chained event log |
+| Proof | 151 tests passing · 400-tick fast-forward · hash-chained event log |
 
 ## What a tick looks like
 
@@ -57,7 +57,7 @@ Real events from the v1.6 400-tick run (tick 399):
 Full runs: `runs/fork-a-v16-400/world-view.html`
 
 **Status (2026-11-21):** Built and accepted on v1.3, rerun on v1.4, v1.5,
-and v1.6 — all three reruns approved by Bryan in the hub. 146 tests pass.
+and v1.6 — all three reruns approved by Bryan in the hub. 151 tests pass.
 v1.6 acceptance checks PASS: 30-tick run (331 events, 39 rests) and
 400-tick fast-forward (4,387 events, 674 rests vs 1,106 in v1.3, legacy
 once at tick 365, Era 2 unnamed), 3 territory controller flips proven on
@@ -75,8 +75,19 @@ turn (story only), everything else happens on its own. Turns 135, 136,
 0 findings, Lore-approved, final; tick 18 to 21, 240 events, Bonds all
 5/5). The Turn 139 handshake is in the outbox (ForkA-vFINAL.8, tick 21).
 The Turns 135–137 checkpoint PASSES (0 failures), completing the proof
-gate — 3 consecutive live turns with correct persistent state. See
-`stage-2-plan.md`.
+gate — 3 consecutive live turns with correct persistent state. **Fork B
+is BUILT and LIVE (2026-11-21):** The Rust Dunes Discovery, a new
+Seedborn arc in the same world and mechanics. Turn 1 applied, 0 changes,
+Lore-approved, final; tick 0 to 3, 22 events, Ashfang Bond 1 to 2. Turn 2
+handshake in the outbox (ForkB-v1.1, tick 3). Turn 2 revised again
+(prop-2-763a40e0): Ashfang free and battered, Bond 2/5, the net dropped
+by Bryan's call; Lore escalated to Bryan for the new hatch pending
+decision (scene Steel Hatch, Rising). The protagonist is now Ragnus,
+renamed from Rin in play — Turn 1 says Rin, from Turn 2 onward Ragnus.
+Ragnus is short and skinny, has a huge rugged Afro, and wears a black
+scarf around the neck (Bryan-confirmed). Parser bug fixed, 4 new
+regression tests. Fork B's canon, seed, Turn 1 handshake, and config are
+not in this repo yet. See `stage-2-plan.md`.
 
 ## v1.6 engine work (2026-11-21)
 
@@ -195,9 +206,18 @@ note matched the separate substrings "turn136" and "vfinal5"). Fixed in
 failures), completing the proof gate — 3 consecutive live turns (135,
 136, 137) with correct persistent state.
 
-Fork B is in progress (Lore canon done, Engine build in progress) and is
-not published yet. Fork A stays frozen and preserved. The live Turn 136
-sequel stays frozen, untouched. See `stage-2-plan.md`.
+Fork B is BUILT and LIVE (2026-11-21): The Rust Dunes Discovery, a new
+Seedborn arc, same world and mechanics, fresh story in a new region.
+Turn 1 applied, 0 changes, Lore-approved, final — tick 0 to 3, 22 events,
+Ashfang Bond 1 to 2. Turn 2 handshake in the outbox (ForkB-v1.1, tick 3).
+Turn 2 revised again (prop-2-763a40e0): Ashfang free and battered, Bond
+2/5, the net dropped by Bryan's call; Lore escalated to Bryan for the new
+hatch pending decision (scene Steel Hatch, Rising). The protagonist is
+now Ragnus, renamed from Rin in play — Turn 1 says Rin, from Turn 2
+onward Ragnus. Parser bug fixed, 4 new regression tests, 151 tests pass.
+Fork B's canon, seed, Turn 1 handshake, and config are not in this repo
+yet. Fork A stays frozen and preserved. The live Turn 136 sequel stays
+frozen, untouched. See `stage-2-plan.md`.
 
 ## Hard rules
 
@@ -253,7 +273,7 @@ living-world-engine/
     drive_io.py           — proposal/handshake file exchange
   tests/
     fixture_seed.json     — TEST FIXTURE, synthetic actors, NOT canon
-    test_*.py             — 146 tests across 13 files
+    test_*.py             — 151 tests across 13 files
   runs/<run-id>/          — proof runs: database + world-view.html
 ```
 
@@ -261,7 +281,7 @@ living-world-engine/
 
 ```bash
 cd living-world-engine
-python3 -m unittest discover -s tests -v   # the 146 tests
+python3 -m unittest discover -s tests -v   # the 151 tests
 
 # A run (fixture shown; replace with seed/fork-a.json when Lore delivers):
 python3 -m src.run seed --seed tests/fixture_seed.json --db runs/proof-30/fork-a.sqlite

@@ -55,6 +55,16 @@ def fresh_fork_g_db(tmp_path):
     return fresh_db(tmp_path, INTERNAL_SEED_G_PATH)
 
 
+INTERNAL_SEED_B_PATH = os.path.join(ENGINE_DIR, "seed",
+                                    "fork-b.internal.json")
+
+
+def fresh_fork_b_db(tmp_path):
+    """Fork B: The Rust Dunes Discovery (Rin/Ashfang/Pike), tick 0,
+    Turn 1, ForkB-v1.0. Separate ledger from Fork A."""
+    return fresh_db(tmp_path, INTERNAL_SEED_B_PATH)
+
+
 def load_lore_seed():
     with open(LORE_SEED_PATH) as f:
         return json.load(f)

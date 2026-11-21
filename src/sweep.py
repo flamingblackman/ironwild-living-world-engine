@@ -103,9 +103,12 @@ def _parse_fields(text):
 def _parse_clocks(raw):
     """Parse the Clocks field. Returns (clocks, text_segments).
 
-    Clocks may be `|`- or `;`-separated. A segment that matches
-    `Name value/max` (with an optional parenthetical — only
-    (Complete) / (Detonated) count as a status, any other
+    Clocks may be `|`-, `;`-, or comma-separated. A comma is a
+    separator only when the next piece opens a new clock (a name
+    followed by value/max) — so a comma inside a parenthetical note
+    ("(proposed, pending approval)") is not a split point. A segment
+    that matches `Name value/max` (with an optional parenthetical —
+    only (Complete) / (Detonated) count as a status, any other
     parenthetical such as "(proposed, pending approval)" is ignored)
     is a clock. A segment that does not match — prose, e.g. a resolved
     campaign clock the start pack lists for context — is carried as
@@ -119,20 +122,28 @@ def _parse_clocks(raw):
         seg = segment.strip()
         if not seg:
             continue
-        m = _CLOCK_RE.match(seg)
-        if not m:
-            text.append(seg)
-            continue
-        status = m.group(4)
-        clocks.append({
-            "name": m.group(1).strip(),
-            "value": int(m.group(2)),
-            "max": int(m.group(3)),
-            # Only Complete / Detonated count as a status; any other
-            # parenthetical is a note, not a state.
-            "status": status if status in ("Complete", "Detonated")
-            else None,
-        })
+        # Comma-joined clocks ("Engine Awakening 1/6, Dust-Baron
+        # Retaliation 0/6, Caravan Route 0/6", Fork B Turn 1): split
+        # on a comma only when the next piece opens a new clock.
+        pieces = re.split(r",\s*(?=[^,()]+?\s+\d+/\d+)", seg)
+        for piece in pieces:
+            piece = piece.strip()
+            if not piece:
+                continue
+            m = _CLOCK_RE.match(piece)
+            if not m:
+                text.append(piece)
+                continue
+            status = m.group(4)
+            clocks.append({
+                "name": m.group(1).strip(),
+                "value": int(m.group(2)),
+                "max": int(m.group(3)),
+                # Only Complete / Detonated count as a status; any other
+                # parenthetical is a note, not a state.
+                "status": status if status in ("Complete", "Detonated")
+                else None,
+            })
     return (clocks if clocks else None), text
 
 
@@ -145,6 +156,10 @@ def _parse_bonds(pc_line):
     Sledge, and "Five Engines, all exhausted and battered: Gold
     Sledge, ..., Bond 3/5" gives Gold Sledge too (the ':' after the
     preamble is a boundary). A leading "Engines:" marker is stripped.
+    Prose Bond lines ("Ashfang is a wolf Bulwark and Ragnus's only
+    Engine, Bond 1/5", Fork B) put the engine name before " is " — the
+    name is the part before the first standalone "is". Structured
+    lines have no " is " and are unchanged.
     Raises SweepError on a Bond outside 0–5.
     """
     bonds = []
@@ -157,6 +172,9 @@ def _parse_bonds(pc_line):
         if chunk.lower().startswith("engines:"):
             chunk = chunk[len("engines:"):].strip()
         name = chunk.split(",")[0].strip()
+        # Prose form: "Ashfang is a wolf Bulwark ..." / "Ashfang is
+        # Bond 1/5" — the engine name is the part before " is ".
+        name = re.split(r"\s+is\b", name, maxsplit=1)[0].strip()
         if not name:
             raise SweepError("Bond %d/5 has no engine name before it" % value)
         bonds.append({"engine": name, "bond": value})

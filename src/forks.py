@@ -45,11 +45,13 @@ FORK_CONFIG = {
         "version": lambda turn: "ForkB-v1.%d" % (turn - 1),
         "version_re": r"^ForkB-v1\.\d+$",
         "version_example": "ForkB-v1.<k>",
-        "companion_id": "pip",
-        "companion_label": "Pip",
-        # New story: nothing resolved yet, nothing dormant.
-        "resolved_default": [],
-        "watchlist_default": [],
+        "companion_id": "pike",
+        "companion_label": "Pike",
+        # New story, same Ironwild world: the campaign's resolved list
+        # and watchlist are world history, so they carry over (Lore's
+        # fork-b-canon.md lists them for Fork B Turn 1).
+        "resolved_default": list(_FORK_A_RESOLVED),
+        "watchlist_default": list(_FORK_A_WATCHLIST),
     },
     "ironwild-fork-g": {
         "display": "Fork G",
