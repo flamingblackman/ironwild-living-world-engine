@@ -254,32 +254,91 @@ advance no state — that is part of the pass criteria, not an extra.
 
 ## 7. 1B — investigation plan (starts after 1A passes)
 
-1B's mechanism is **not chosen yet**. Do not build it blind. The
-investigation, in order:
+**1B's mechanism is not chosen yet — and the investigation (read-only
+browser task, 2026-11-21 01:28–01:31 EST) narrowed it.** Findings,
+verified live on Bryan's account (paccman360 Plus, signed in):
 
-1. **Can the ChatGPT app connect Google Drive on Bryan's account?**
-   ChatGPT Plus surfaces a Google Drive connector in some clients.
-   If the Ironwild Test Project GPT can read the outbox folder and
-   write to the inbox folder through that connection, 1B is a
-   configuration + instruction change, not a build. This needs
-   Bryan's account access (browser task) — it cannot be tested from
-   the Engine side alone.
-2. **GPT Actions against a hosted endpoint.** A custom GPT Action
-   needs a public HTTPS endpoint to call. This VM has none. Building
-   one is a hosting decision (and a new surface to secure), not a
-   quick patch — only if option 1 fails, and only with Bryan's call.
-3. **Browser-driven UI automation.** A browser task driving the
-   ChatGPT UI to upload/download files is the fallback of last
-   resort: it is brittle, and it is still copying by machine rather
-   than integration. It counts as demonstrated only if it runs
-   unattended end to end on Bryan's account — a person pasting does
-   not count.
+- **Correction to the premise: "Ironwild Test" is NOT a custom GPT.**
+  It is a ChatGPT Project (a folder) with three chats (Ironwild
+  Handshake, Echo Turn State, Ironwild Decision Suspended). Projects
+  have NO tools/actions configuration — the Project settings dialog
+  holds only the name, icon/color, an Instructions text box (the DM
+  ruleset; no mention of Drive, file reading/writing, tools, or
+  APIs), Memory, and Space access (ChatGPT's internal file Space,
+  not Google Drive). The account owns NO custom GPTs at all
+  ("No GPTs here yet").
+- **No "Apps" / "Connected apps" section exists in Settings.**
+  Searching Settings for "Google Drive" returns "No results found".
+  The closest equivalent is Settings > Integrations > Plugins:
+  "You haven't installed any plugins yet" / "No installed plugins".
+- **The Google Drive plugin IS available:** chatgpt.com/plugins
+  lists "Google Drive — Drive, Docs, Sheets or Slides" under
+  Popular, with a + (add) button. It is NOT installed or connected.
+  The investigation did not click it (a state change).
+- **GPTs will be retired on December 11** (banner in the account):
+  GPTs migrated by their creators remain available as plugins after
+  that date. A custom-GPT build would be a dead end; the plugin is
+  the forward-compatible route.
+- **Judgment on current evidence:** the Ironwild Test setup CANNOT
+  submit a V2 proposal to Drive or read a handshake from Drive
+  without a person copy-pasting. 1B is unproven until the live test
+  passes.
 
-**1B acceptance:** demonstrated end to end on Bryan's account
-(paccman360 Plus, Ironwild Test Project) — the DM submits a V2
-proposal and retrieves the resulting approved handshake with no
+The investigation, in order (updated with the findings):
+
+1. **The Google Drive plugin (replaces the old option 1).** Install
+   / connect it on Bryan's account and confirm it authenticates to
+   the intended Google account (the personal Gmail, where the
+   fiction lives — NOT the business account). Then, in a chat inside
+   the Ironwild Test Project, ask it to read a specific Drive text
+   file (the outbox handshake) and to write/save a text file to
+   Drive (the inbox proposal), verifying the actual Drive contents
+   afterward. Confirm the plugin works inside Projects. **This needs
+   Bryan's approval — installing/connecting the plugin is a state
+   change on his account, and the live test touches his Drive.**
+2. **GPT Actions against a hosted endpoint.** Superseded for now:
+   there is no custom GPT to carry Actions, and GPTs retire Dec 11.
+   Only if the plugin route fails, and only with Bryan's call.
+3. **Browser-driven UI automation.** Fallback of last resort, as
+   before — counts only if it runs unattended end to end on Bryan's
+   account.
+
+**1B acceptance (unchanged):** demonstrated end to end on Bryan's
+account (paccman360 Plus, Ironwild Test Project) — the DM submits a
+V2 proposal and retrieves the resulting approved handshake with no
 copy-paste by Bryan or by any person. A demonstration that needs a
 person in the loop is a fail, not a pass.
+
+**1B LIVE TEST PASSED 2026-11-21 ~01:37 EST (Bryan's approval
+01:32 EST).** The Google Drive plugin was installed and connected
+to frncsbryn54@gmail.com ONLY (Gmail, Calendar and Contacts were
+switched off in the connect dialog; the business account was never
+offered and never connected; no password or phone tap needed — the
+saved Google session was used). In a NEW chat inside the Ironwild
+Test Project (auto-titled "Quote Google Drive File"; nothing posted
+in the existing chats, no Project instructions changed), the plugin
+read turn-134.md from the outbox and quoted its opening lines
+exactly, and wrote ironwild-1b-write-test.txt into the Canon parent
+folder ("Ironwild - Canon") with the exact marker text. **Engine
+verification (Drive CLI, independent of the chat's claim):** the
+file existed in the Canon folder (id
+1seqKjcefUx1n7hs1ejyRaajSuFKRdJMI, text/plain); its downloaded
+content matched the marker text exactly; it was then trashed (0
+untrashed copies remain) and the local verification copy removed.
+One hiccup, owned: the first download used the wrong CLI flag
+(`--download-to`, rejected), so the file was trashed before its
+content was read; it was restored, downloaded with the correct flag
+(`--output`), verified, and trashed again. **What 1B still needs:**
+the full acceptance — a REAL turn in which the DM (in the Ironwind
+Handshake chat) submits its V2 proposal to the inbox via the plugin
+and retrieves the approved handshake from the outbox, with no
+copy-paste. That needs the DM's instructions to include the Drive
+steps (a Lore/start-pack question, not an Engine build).
+
+**Side note from the investigation:** the Project's Instructions
+cite "ironwild-mechanic-registry.md" under REGISTRY with no stated
+location or Drive link — a Lore item (the DM ruleset), not an
+Engine action.
 
 ## 8. Open items
 

@@ -1,11 +1,63 @@
-# Living World Engine — Ironwild
+<div align="center">
 
-The machine, not the story. A deterministic tick engine that runs a forked
-Ironwild world off NPC and player actions, with the state database as the
-single source of truth and an append-only event log.
+# 🤖 Living World Engine — Ironwild
+
+**The machine, not the story. A deterministic tick engine for a world of giant robots.**
+
+[![Python](https://img.shields.io/badge/Python-3%20stdlib%20only-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org)
+[![SQLite](https://img.shields.io/badge/SQLite-Single%20source%20of%20truth-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
+[![Tests](https://img.shields.io/badge/Tests-105%20passing-brightgreen?style=flat)](tests/)
+[![Status](https://img.shields.io/badge/Status-Phase%202%20building-8A2BE2?style=flat)](phase-2-plan.md)
+
+</div>
+
+## What it does in 10 seconds
+
+Seed in, ticks out. One tick is one in-world day: engines get hungry, NPCs score their actions and do the best one, clocks tick, eras turn. Every move lands in an append-only event log with a hash chain, and the state database is the single source of truth. Same seed, same world, every time — deterministic down to the last event.
+
+## The tick, in pictures
+
+```mermaid
+flowchart TD
+    A[🌅 Molted engines return to active] --> B[🍽️ Every engine's Hunger +1]
+    B --> C{Engine at Hunger threshold?}
+    C -->|Yes| D[🐾 Hunt on Instinct]
+    C -->|No| E[🧠 NPCs score actions, do the best]
+    D --> E
+    E --> F[🤖 Engines score actions, do the best]
+    F --> G[⏰ Clock completions fire]
+    G --> H[📜 Era boundaries fire legacy rules once]
+    H --> I[📸 Snapshot every 10 ticks]
+```
+
+## The world at a glance
+
+| | |
+| --- | --- |
+| World | Ironwild Fork A — The Beacon Year |
+| Seed | v1.6, from Ironwild Turn 131 vFINAL |
+| DNA | Zoids × Gaogaigar — beast-machines, Bonds, brave-hearted combining heroics |
+| Cast | 10 NPCs · 5 Engines · 6 factions · 7 locations |
+| Catalog | 18 actions · 4 clocks · era 365 ticks |
+| Engine | Python 3 stdlib + SQLite, no LLM ever writes state |
+| Proof | 105 tests passing · 400-tick fast-forward · hash-chained event log |
+
+## What a tick looks like
+
+Real events from the v1.6 400-tick run (tick 399):
+
+| Tick | Actor | Action | What happened |
+| --- | --- | --- | --- |
+| 399 | kaelen | trade_kaelen | Feed 2 Legion → Concord; Salvage 2 Concord → Legion |
+| 399 | tull | feed_engine | Feed -1 (Legion); Hunger -2 (razor_back) |
+| 399 | dust_baron_captain | raid_captain | Feed -2 (Legion); Salvage +2 (Remnants); Retaliation clock +1 — raid blocked, Great Basin patrolled |
+| 399 | caravan_master | trade_concord | Feed 2 Concord → Legion; Salvage 2 Legion → Concord |
+| 399 | nest_keeper | tend_den | Feed +1 (Nest Keepers); den maintained |
+
+Full runs: `runs/fork-a-v16-400/world-view.html`
 
 **Status (2026-11-21):** Built and accepted on v1.3, rerun on v1.4, v1.5,
-and v1.6 — all three reruns approved by Bryan in the hub. 103 tests pass.
+and v1.6 — all three reruns approved by Bryan in the hub. 105 tests pass.
 v1.6 acceptance checks PASS: 30-tick run (331 events, 39 rests) and
 400-tick fast-forward (4,387 events, 674 rests vs 1,106 in v1.3, legacy
 once at tick 365, Era 2 unnamed), 3 territory controller flips proven on
@@ -80,10 +132,16 @@ parser and validator), `handshake.py` (handshake generator),
 (checkpoint and carried-state records), `session.py` (session flag),
 `drive_io.py` (proposal/handshake file exchange). New tests:
 `test_auto_tick.py`, `test_sweep.py`, `test_handshake.py`,
-`test_proposals.py`, `test_checkpoint.py` — 103 tests total, all passing.
+`test_proposals.py`, `test_checkpoint.py` — 105 tests total, all passing.
 Turns 132 and 133 applied in the Fork A test (`runs/sweeps/turn-132/`,
-`runs/sweeps/turn-133/`), Turn 134 handshake ready
-(`runs/handshakes/turn-134.md`). See `phase-2-plan.md`,
+`runs/sweeps/turn-133/`), Turn 134 handshake fixed at the generator and
+cleared to play (PC Sledge Bond 4/5 — the generator now draws PC Bonds
+from the DB, never the carried block; 2 new tests cover it).
+Six upgrades added to the plan Nov 21 01:29 EST, in priority order (see
+`upgrades-plan.md`): invisible game master console, NPC memory, living
+world scheduler, recovery and checkpoints, adaptive pacing, automated
+quality testing. Nonnegotiable: the engine never sacrifices correctness
+to keep the story moving. See `phase-2-plan.md`,
 `stage-1-plan.md`, and `test-harness.md`.
 
 ## Hard rules
@@ -136,7 +194,7 @@ living-world-engine/
     drive_io.py           — proposal/handshake file exchange
   tests/
     fixture_seed.json     — TEST FIXTURE, synthetic actors, NOT canon
-    test_*.py             — 103 tests across 12 files
+    test_*.py             — 105 tests across 12 files
   runs/<run-id>/          — proof runs: database + world-view.html
 ```
 
@@ -144,7 +202,7 @@ living-world-engine/
 
 ```bash
 cd living-world-engine
-python3 -m unittest discover -s tests -v   # the 103 tests
+python3 -m unittest discover -s tests -v   # the 105 tests
 
 # A run (fixture shown; replace with seed/fork-a.json when Lore delivers):
 python3 -m src.run seed --seed tests/fixture_seed.json --db runs/proof-30/fork-a.sqlite

@@ -555,3 +555,17 @@ line plus duplicated tick-6 lines; the file was correct, my message
 was not. The corrected text (17 off-screen lines) was sent
 immediately. Lesson, same as the Salvage stop: never re-type a
 handshake — copy the file text exactly.
+
+**Stale Bond in the Turn 134 handshake — fixed at the generator
+(Lore caught it, 2026-11-21 ~01:28 EST).** The PC line said Sledge
+Bond 3/5 while the DB and the Engines section said 4/5 (Dream
+Share restored +1 at tick 5, event 51, Pack Feed −2, after Turn 133
+was swept). My "designed split" framing was wrong — two values for
+one Bond is a defect. Fix in `src/handshake.py`: the generator now
+draws the PC line's Bonds from the DB (first "Bond N/5" after each
+engine's name, before the next engine's name), and drops the
+carried "All Engine Bonds unchanged." claim when a Bond moved.
+105 tests pass (2 new). Regenerated: 597 words, 18 off-screen
+lines, Sledge 4/5 in both places, verified by diff (only the PC
+line + one more tick-5 line changed). Stale outbox copy trashed;
+the outbox holds exactly one turn-134.md, the corrected one.
