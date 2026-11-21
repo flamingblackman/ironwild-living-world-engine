@@ -139,7 +139,9 @@ cleared to play (PC Sledge Bond 4/5 — the generator now draws PC Bonds
 from the DB, never the carried block; 2 new tests cover it). Stage 1B
 live test passed Nov 21 01:38 EST: the Google Drive plugin is installed
 and connected to the personal Gmail only, and a read test verified end
-to end in the Ironwild Test Project.
+to end in the Ironwild Test Project. Drive intake poll runs every 15
+minutes (first run 01:31 EST, 0 new); the auto-tick cron stays disabled
+until Bryan says otherwise.
 Six upgrades added to the plan Nov 21 01:29 EST, in priority order (see
 `upgrades-plan.md`): invisible game master console, NPC memory, living
 world scheduler, recovery and checkpoints, adaptive pacing, automated
