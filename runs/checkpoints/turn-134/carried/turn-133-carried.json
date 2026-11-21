@@ -1,0 +1,66 @@
+{
+  "active_trade_off": "Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.",
+  "bonds": [
+    {
+      "bond": 3,
+      "engine": "Gold Sledge"
+    },
+    {
+      "bond": 5,
+      "engine": "Skytalon"
+    },
+    {
+      "bond": 3,
+      "engine": "Razor-Back"
+    },
+    {
+      "bond": 5,
+      "engine": "Goliath Dreadnought"
+    },
+    {
+      "bond": 5,
+      "engine": "Surveyor-Strider"
+    }
+  ],
+  "clocks": [
+    {
+      "max": 6,
+      "name": "Concord Blockade",
+      "status": null,
+      "value": 0
+    },
+    {
+      "max": 6,
+      "name": "Dust-Baron Retaliation",
+      "status": null,
+      "value": 0
+    },
+    {
+      "max": 6,
+      "name": "Great Basin Recovery",
+      "status": "Complete",
+      "value": 6
+    },
+    {
+      "max": 6,
+      "name": "Legion Cohesion",
+      "status": null,
+      "value": 0
+    }
+  ],
+  "clocks_raw": "Concord Blockade 0/6; Dust-Baron Retaliation 0/6; Great Basin Recovery 6/6 (Complete); Legion Cohesion 0/6",
+  "pack": [
+    "Vance",
+    "Tull",
+    "Queen Kaelen",
+    "Nest-Keeper"
+  ],
+  "pc_raw": "Brigus, Seedborn, King of the Great Basin, Beacon. Wounds: None. Status: exhausted after the Feral God merge, victorious, directing reconstruction and requesting development of an elite combat unit. Five Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 3/5, exhausted and battered, Titanium-Cestus (Diamond-Claw melted Turn 126), neural Sentient Seat (not a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, exhausted and battered, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, adult Molt Turn 129, no longer juvenile or hard-light winged; Razor-Back, Bond 3/5, exhausted and battered following Turn 128 Pack Merge; Goliath Dreadnought, Bond 5/5, field-patched, pre-war machine, left mortar pod destroyed Turn 112; Surveyor-Strider, Bond 5/5, exhausted and battered, observation and fire-control platform. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Vance, Tull, and Kaelen in Great Basin; Nest-Keeper in Chalk Canyons. Faction: Ironwild Legion, 600 strong, including absorbed Dust-Baron mercenaries. Great Basin fortified. All Engine Bonds unchanged. Elite combat unit requested; preliminary engineering assessment underway, no unit formed or resources expended.",
+  "pending_decision": "\"What kind of elite force should the engineers develop?\"",
+  "resources": [],
+  "scene": "Great Basin \u2014 Legion Engineering Grounds",
+  "scene_tension": "Low",
+  "state_version": "ForkA-vFINAL.2",
+  "turn": 133,
+  "wounds": "None"
+}

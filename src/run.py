@@ -16,7 +16,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src import (auto_tick as auto_tick_mod, checkpoint as checkpoint_mod,
+from src import (auto_apply as auto_apply_mod,
+                 auto_tick as auto_tick_mod,
+                 checkpoint as checkpoint_mod,
                  db, drive_io, events, handshake as handshake_mod,
                  proposals as proposals_mod, render,
                  seed as seed_mod, session as session_mod, sweep as sweep_mod,
@@ -63,6 +65,26 @@ def cmd_tick(args):
 
 def cmd_render(args):
     conn = _open(args.db)
+    if args.format == "json":
+        carried = None
+        if args.carried:
+            with open(args.carried, encoding="utf-8") as f:
+                carried = json.load(f)
+        out = args.out
+        if not out:
+            # The stable Companion export path: runs/<world>/world-view.json
+            out = os.path.join(_runs_dir(),
+                               db.get_meta(conn, "world_id", "world"),
+                               "world-view.json")
+        os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+        render.render_world_view_json(conn, out, carried=carried)
+        conn.close()
+        print(f"world view (json) written to {out}")
+        return
+    if not args.out:
+        print("render --format html needs --out")
+        conn.close()
+        sys.exit(1)
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     render.render_world_view(conn, args.out)
     conn.close()
@@ -123,8 +145,13 @@ def cmd_intake(args):
     """Poll the Drive inbox for V2 proposals (Stage 1A).
 
     Registers + validates each new file, writes its review, updates
-    the registry. Never touches the DB. A rejected proposal is a
-    recorded outcome, not a crash; a Drive failure exits 1.
+    the registry. Never touches the DB — unless --auto-apply is set,
+    in which case each NEW reviewed proposal that passes the
+    0-change eligibility check is applied under Bryan's standing
+    approval, ticked 3, and handed a next handshake in the outbox
+    (see attempt_auto_apply). Anything not eligible is held for
+    Bryan and its review printed, as before. A rejected proposal is
+    a recorded outcome, not a crash; a Drive failure exits 1.
     """
     config = _load_proposal_config()
     inbox = args.inbox or config.get("inbox_folder_id")
@@ -138,12 +165,40 @@ def cmd_intake(args):
         print(f"intake halted (Drive): {exc}")
         conn.close()
         sys.exit(1)
-    conn.close()
     for e in new_entries:
         print(f"{e['proposal_id']}: {e['status']} "
               f"(turn {e.get('turn')}, {e.get('state_version')})")
+        if e["status"] == "rejected":
+            print(f"  rejected: {e.get('error')}")
+        elif args.auto_apply and e["status"] == "reviewed":
+            try:
+                record = attempt_auto_apply(
+                    e["proposal_id"], conn,
+                    flag_path=session_mod.FLAG_PATH,
+                    outbox=args.outbox)
+            except auto_apply_mod.LoreCall as exc:
+                print(f"LORE-CALL {exc.pid}: "
+                      + "; ".join("%s: %s" % (f["code"], f["detail"])
+                                 for f in exc.flags))
+                print(f"  block: {os.path.join(proposals_mod._proposal_dir(exc.pid), 'proposal.txt')}")
+                continue
+            except sweep_mod.SweepError as exc:
+                print(f"HELD {e['proposal_id']}: {exc}")
+                continue
+            except drive_io.DriveError as exc:
+                print(f"AUTO-APPLY FAILED {e['proposal_id']} "
+                      f"(Drive): {exc}")
+                continue
+            hs = record["handshake"] or {}
+            print(f"AUTO-APPLIED {record['proposal_id']} turn "
+                  f"{record['turn']} {record['state_version']}: "
+                  f"tick {record['tick_before']} -> "
+                  f"{record['tick_after']}, "
+                  f"{record['events_after']} events, handshake "
+                  f"{hs.get('path')} (Drive {hs.get('drive_file_id')})")
     print(f"intake done: {len(new_entries)} new, {skipped} already "
           f"registered")
+    conn.close()
 
 
 def cmd_apply_proposal(args):
@@ -169,7 +224,8 @@ def cmd_apply_proposal(args):
         result = proposals_mod.apply_proposal(
             args.proposal_id, conn, args.approved_by,
             flag_path=args.flag or session_mod.FLAG_PATH,
-            resource_changes=resource_changes)
+            resource_changes=resource_changes,
+            lore_approval=args.lore_approval)
     except sweep_mod.SweepError as exc:
         print(f"apply refused: {exc}")
         conn.close()
@@ -186,11 +242,204 @@ def cmd_apply_proposal(args):
         "proposal_id": args.proposal_id,
         "proposal_binding": result["proposal_binding"],
     }
+    if args.lore_approval:
+        # A flagged proposal Lore approved: record it as
+        # Lore-approved, not as a pure auto-apply, so the audit trail
+        # shows who cleared it.
+        review_record["lore_approved"] = True
     _write_sweep_records(out_dir, result, review_record)
+    if args.lore_approval:
+        proposals_mod.record_lore_approval(args.proposal_id,
+                                          args.lore_approval)
+        print(f"Lore-approved apply (submission {args.lore_approval}); "
+              f"record written to runs/proposals/{args.proposal_id}/"
+              f"lore-approved.json")
     print(f"applied {len(result['applied'])} change(s) from "
-          f"{args.proposal_id}, approved by {args.approved_by}; "
+          f"{args.proposal_id}, approved by "
+          f"{'Lore' if args.lore_approval else args.approved_by}; "
           f"record written to {out_dir}/")
     conn.close()
+
+
+def _load_last_carried(conn):
+    """The carried record of the last approved sweep
+    (runs/sweeps/turn-<n>/carried.json), or None when no prior sweep
+    exists or its record is missing. The narrative-flag comparison
+    in flag_narrative_changes needs it; a missing baseline is itself
+    a flag (NO_BASELINE)."""
+    last_swept = db.get_meta(conn, "last_swept_turn")
+    if last_swept is None:
+        return None
+    path = os.path.join(_runs_dir(), "sweeps",
+                        "turn-%s" % last_swept, "carried.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
+def _write_auto_applied(pid, record):
+    """The auto-apply log: proposal ID + hash binding, what the
+    standing approval authorized, and what happened after the apply
+    (ticks, handshake). Lives next to applied.json in the proposal
+    dir, so the audit trail shows the auto path separately from a
+    per-proposal tap."""
+    out_dir = proposals_mod._proposal_dir(pid)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "auto-applied.json"), "w") as f:
+        json.dump(record, f, indent=2, sort_keys=True)
+
+
+def attempt_auto_apply(pid, conn, flag_path=None, ticks=3, outbox=None):
+    """Apply one reviewed proposal under the standing 0-change
+    approval, tick, and generate + upload the next handshake.
+
+    Eligibility is re-checked fresh against the live DB (the intake
+    review is stale the moment anything ticks). Raises SweepError on
+    any refusal — nothing is applied. The eligibility, fork, hash,
+    and session checks all run before the first write; once the
+    apply commits, a later failure (tick halt, invariant problem,
+    handshake upload failure) leaves the apply standing and the
+    record says so loudly — the handshake is not generated from a
+    halted or suspect state. Returns the auto-apply record.
+    """
+    flag_path = flag_path or session_mod.FLAG_PATH
+    registry = proposals_mod.load_registry()
+    entry = registry.get(pid)
+    if entry is None:
+        raise sweep_mod.SweepError("unknown proposal %s: no such "
+                                   "proposal in the registry" % pid)
+    if entry["status"] != "reviewed":
+        raise sweep_mod.SweepError("proposal %s is %s, not reviewed; "
+                                   "only a reviewed proposal can be "
+                                   "applied" % (pid, entry["status"]))
+    with open(os.path.join(proposals_mod._proposal_dir(pid),
+                           "proposal.txt"), encoding="utf-8") as f:
+        stored = f.read()
+    parsed = sweep_mod.parse_state_block(stored)
+    row = conn.execute(
+        "SELECT value FROM meta WHERE key = 'world_id'").fetchone()
+    world_id = row["value"] if row else "ironwild-fork-a"
+    findings = (sweep_mod.validate(parsed, conn)
+                + proposals_mod.validate_fork(parsed, world_id))
+    changes = sweep_mod.diff(parsed, conn)
+    eligible, reasons = auto_apply_mod.check_eligible(
+        parsed, findings, changes, conn, flag_path)
+    last_carried = _load_last_carried(conn)
+    flags = auto_apply_mod.flag_narrative_changes(
+        parsed, last_carried, conn)
+    if eligible and not flags:
+        pass  # pure carry-over; fall through to the apply below
+    elif flags and not {r["code"] for r in reasons} - {
+            auto_apply_mod.REASON_PENDING_DECISION}:
+        # 0-change, but the block carries a narrative change the
+        # sweep cannot validate (guard (a)–(c)). Lore decides
+        # APPROVE or ESCALATE — the Engine does not auto-apply it.
+        raise auto_apply_mod.LoreCall(pid, flags)
+    else:
+        why = "; ".join(r["message"] for r in reasons)
+        if flags:
+            why += ("; narrative flags: "
+                    + "; ".join("%s: %s" % (f["code"], f["detail"])
+                               for f in flags))
+        raise sweep_mod.SweepError(
+            "proposal %s is not eligible for auto-apply: %s" % (pid, why))
+    tick_before = db.get_tick(conn)
+    events_before = conn.execute(
+        "SELECT COUNT(*) FROM events").fetchone()[0]
+    result = proposals_mod.apply_proposal(pid, conn, "Bryan",
+                                          flag_path=flag_path)
+    # The standard sweep records, so the checkpoint sees an
+    # auto-apply exactly like a manual one.
+    out_dir = os.path.join(_runs_dir(), "sweeps",
+                           "turn-%d" % result["turn"])
+    review_record = {
+        "ok": True, "dry_run": False, "turn": result["turn"],
+        "state_version": entry["state_version"],
+        "findings": entry["findings"], "changes": result["applied"],
+        "review": entry["review"],
+        "proposal_id": pid,
+        "proposal_binding": result["proposal_binding"],
+        "auto_applied": True,
+    }
+    _write_sweep_records(out_dir, result, review_record)
+    tick_after = tick_before
+    tick_halted = None
+    try:
+        tick_after = tick_mod.run_ticks(conn, ticks)
+    except tick_mod.EngineHalt as exc:
+        tick_after = db.get_tick(conn)
+        tick_halted = str(exc)
+    problems = tick_mod.verify_invariants(conn)
+    chain_ok, _ = events.verify_chain(conn)
+    record = {
+        "proposal_id": pid,
+        "content_hash": entry["content_hash"],
+        "drive_file_id": entry["drive_file_id"],
+        "turn": result["turn"],
+        "state_version": entry["state_version"],
+        "approved_by": "Bryan",
+        "approval": auto_apply_mod.STANDING_APPROVAL,
+        "applied_at": result["proposal_binding"]["applied_at"],
+        "tick_before": tick_before,
+        "tick_after": tick_after,
+        "events_before": events_before,
+        "events_after": conn.execute(
+            "SELECT COUNT(*) FROM events").fetchone()[0],
+        "state_hash": db.state_hash(conn),
+        "hash_chain_ok": chain_ok,
+        "invariant_problems": problems,
+        "tick_halted": tick_halted,
+        "handshake": None,
+    }
+    if tick_halted or problems or not chain_ok:
+        _write_auto_applied(pid, record)
+        raise sweep_mod.SweepError(
+            "auto-apply of %s applied (0 changes) but the follow-up "
+            "failed — tick halted: %s; invariant problems: %s; hash "
+            "chain ok: %s. No handshake generated; report to the hub."
+            % (pid, tick_halted, problems, chain_ok))
+    hs = handshake_mod.generate_handshake(
+        conn, result["carried"], since_tick=tick_before)
+    next_turn = result["turn"] + 1
+    hs_path = os.path.join(_runs_dir(), "handshakes",
+                           "turn-%d.md" % next_turn)
+    os.makedirs(os.path.dirname(hs_path) or ".", exist_ok=True)
+    with open(hs_path, "w") as f:
+        f.write(hs["text"] + "\n")
+    with open(hs_path + ".json", "w") as f:
+        json.dump(hs["meta"], f, indent=2, sort_keys=True)
+    outbox_id = outbox or _load_proposal_config().get("outbox_folder_id")
+    hs_file_id = None
+    if outbox_id:
+        try:
+            hs_file_id = drive_io.upload_text(
+                outbox_id, os.path.basename(hs_path), hs["text"] + "\n",
+                hs_path)
+        except drive_io.DriveError as exc:
+            record["handshake"] = {"path": hs_path,
+                                   "drive_file_id": None,
+                                   "upload_error": str(exc)}
+            _write_auto_applied(pid, record)
+            raise sweep_mod.SweepError(
+                "auto-apply of %s applied and ticked, but the handshake "
+                "upload failed (Drive): %s. Handshake is on disk at %s; "
+                "report to the hub." % (pid, exc, hs_path))
+    record["handshake"] = {
+        "path": hs_path,
+        "drive_file_id": hs_file_id,
+        "words": hs["meta"]["words"],
+        "turn": next_turn,
+        "state_version": hs["meta"]["state_version"],
+    }
+    _write_auto_applied(pid, record)
+    registry = proposals_mod.load_registry()
+    entry = registry[pid]
+    entry["auto_applied"] = True
+    entry["auto_apply_approval"] = auto_apply_mod.STANDING_APPROVAL
+    proposals_mod.save_registry(registry)
+    return record
 
 
 def cmd_sweep(args):
@@ -352,7 +601,9 @@ def main():
 
     p = sub.add_parser("render")
     p.add_argument("--db", required=True)
-    p.add_argument("--out", required=True)
+    p.add_argument("--out", required=False, default=None)
+    p.add_argument("--format", choices=["html", "json"], default="html")
+    p.add_argument("--carried", required=False, default=None)
     p.set_defaults(fn=cmd_render)
 
     p = sub.add_parser("verify")
@@ -387,6 +638,14 @@ def main():
     p.add_argument("--inbox", default=None,
                    help="Drive folder id to poll for proposals "
                         "(defaults to runs/proposals/config.json)")
+    p.add_argument("--auto-apply", action="store_true",
+                   help="auto-apply eligible 0-change proposals under "
+                        "Bryan's standing approval (apply, tick 3, "
+                        "next handshake to the outbox); anything not "
+                        "eligible is held for Bryan")
+    p.add_argument("--outbox", default=None,
+                   help="Drive folder id for the auto-apply handshake "
+                        "upload (defaults to runs/proposals/config.json)")
     p.set_defaults(fn=cmd_intake)
 
     p = sub.add_parser("apply-proposal")
@@ -395,6 +654,10 @@ def main():
     p.add_argument("--approved-by", default=None)
     p.add_argument("--flag", default=None)
     p.add_argument("--resource-change", action="append", default=[])
+    p.add_argument("--lore-approval", default=None,
+                   help="Lore's APPROVE submission id for a flagged "
+                        "proposal (records the apply as Lore-approved, "
+                        "not a pure auto-apply)")
     p.set_defaults(fn=cmd_apply_proposal)
 
     p = sub.add_parser("checkpoint")

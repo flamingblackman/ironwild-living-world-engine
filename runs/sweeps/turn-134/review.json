@@ -3,7 +3,15 @@
   "dry_run": false,
   "findings": [],
   "ok": true,
-  "review": "Sweep review \u2014 Turn 134 ForkA-vFINAL.3\nBased on: Turn 134 ForkA-vFINAL.3 | Last approved: Turn 133 ForkA-vFINAL.2\nScene: Great Basin | tension Low\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
+  "proposal_binding": {
+    "applied_at": "2026-11-21T12:51:43.095140+00:00",
+    "approved_by": "Bryan",
+    "content_hash": "da56b383a33bb981a540a82f4111d5e2027664e07737646c4ecaa23df7942870",
+    "drive_file_id": "1YTxY9jenpPfNgokXS5BhieuvwqUwkXuU",
+    "proposal_id": "prop-134-da56b383"
+  },
+  "proposal_id": "prop-134-da56b383",
+  "review": "Sweep review \u2014 Turn 134 ForkA-vFINAL.3\nBased on: Turn 134 ForkA-vFINAL.3 | Last approved: Turn 133 ForkA-vFINAL.2\nScene: Great Basin \u2014 Legion Engineering Grounds | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
   "state_version": "ForkA-vFINAL.3",
   "turn": 134
 }

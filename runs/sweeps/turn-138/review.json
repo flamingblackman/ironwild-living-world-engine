@@ -1,0 +1,19 @@
+{
+  "changes": [],
+  "dry_run": false,
+  "findings": [],
+  "lore_approved": true,
+  "ok": true,
+  "proposal_binding": {
+    "applied_at": "2026-11-21T20:04:19.331827+00:00",
+    "approved_by": "Lore",
+    "content_hash": "21644a4b8c6597c27a50ec0a8edc67ad241b6183443511cf96463fdd6a906e60",
+    "drive_file_id": "1FxU7KspeI05M0Q4WASfjXWD9rtXbl1aY",
+    "lore_approval": "hub-relay-2026-11-21-1504",
+    "proposal_id": "prop-138-21644a4b"
+  },
+  "proposal_id": "prop-138-21644a4b",
+  "review": "Sweep review \u2014 Turn 138 ForkA-vFINAL.7\nBased on: Turn 138 ForkA-vFINAL.7 | Last approved: Turn 137 ForkA-vFINAL.6\nScene: Great Basin \u2014 Legion Supply Stores and Expedition Preparations | tension Low\nTrade-off (carried): A long exploratory journey with Gold Sledge requires provisions and potentially repairs, while civilian housing, Legion operations, and Engine recovery also depend on limited supplies and salvage.\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
+  "state_version": "ForkA-vFINAL.7",
+  "turn": 138
+}

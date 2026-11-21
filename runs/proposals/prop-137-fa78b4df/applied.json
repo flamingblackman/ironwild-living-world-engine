@@ -1,0 +1,81 @@
+{
+  "applied": [],
+  "approved_by": "Lore",
+  "carried": {
+    "active_trade_off": "Warm, secure civilian housing is the reconstruction priority; available salvage and labor must also support Engine recovery and eventual rapid-response force development.",
+    "base_version": null,
+    "bonds": [
+      {
+        "bond": 5,
+        "engine": "Gold Sledge"
+      },
+      {
+        "bond": 5,
+        "engine": "Skytalon"
+      },
+      {
+        "bond": 5,
+        "engine": "Razor-Back"
+      },
+      {
+        "bond": 5,
+        "engine": "Goliath Dreadnought"
+      },
+      {
+        "bond": 5,
+        "engine": "Surveyor-Strider"
+      }
+    ],
+    "clocks": [
+      {
+        "max": 6,
+        "name": "Concord Blockade",
+        "status": null,
+        "value": 0
+      },
+      {
+        "max": 6,
+        "name": "Dust-Baron Retaliation",
+        "status": null,
+        "value": 0
+      },
+      {
+        "max": 6,
+        "name": "Great Basin Recovery",
+        "status": "Complete",
+        "value": 6
+      },
+      {
+        "max": 6,
+        "name": "Legion Cohesion",
+        "status": null,
+        "value": 0
+      }
+    ],
+    "clocks_raw": "Concord Blockade 0/6; Dust-Baron Retaliation 0/6; Great Basin Recovery 6/6 (Complete); Legion Cohesion 0/6",
+    "pack": [
+      "Vance",
+      "Tull",
+      "Queen Kaelen",
+      "Nest-Keeper"
+    ],
+    "pc_raw": "Brigus, Seedborn, King of the Great Basin, Beacon. Wounds: None. Status: exhausted after the Feral God merge, victorious, directing reconstruction. Brigus chose development of an elite rapid-response force to protect settlements, caravans, and wounded Engines. He convened a council meeting to improve civilian quality of life, declaring, \"We need to have our citizens live in comfort.\" He has now directed the council to prioritize warm and secure homes, visited the hangar to collect Gold Sledge, and departed to wander without a specified destination. Five Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 5/5, exhausted and battered, Titanium-Cestus (Diamond-Claw melted Turn 126), neural Sentient Seat (not a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, field-patched and battered, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, adult Molt Turn 129, no longer juvenile or hard-light winged; Razor-Back, Bond 5/5, field-patched, previously exhausted and battered following Turn 128 Pack Merge; Goliath Dreadnought, Bond 5/5, field-patched, pre-war machine, left mortar pod destroyed Turn 112; Surveyor-Strider, Bond 5/5, exhausted and battered, observation and fire-control platform. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Vance, Tull, and Queen Kaelen are in Great Basin; Nest-Keeper is in Chalk Canyons. Faction: Ironwild Legion, 600 strong, including absorbed Dust-Baron mercenaries. Great Basin fortified. Elite rapid-response force selected as the development objective; doctrine drafted, personnel not yet selected, equipment not yet manufactured. Council has discussed housing, water, sanitation, food security, and care for citizens and Feral Engines. Warm, secure housing is now Brigus's stated civilian priority; planning and resource assessment proposed, no homes completed or resources expended. All Engine Bonds unchanged.",
+    "pending_decision": null,
+    "resources": [],
+    "scene": "Great Basin \u2014 Streets Outside the Feral Engine Hangar",
+    "scene_tension": "Low",
+    "state_version": "ForkA-vFINAL.6",
+    "turn": 137,
+    "wounds": "None"
+  },
+  "lore_approval": "hub-relay-2026-11-21-1439",
+  "proposal_binding": {
+    "applied_at": "2026-11-21T19:43:18.291609+00:00",
+    "approved_by": "Lore",
+    "content_hash": "fa78b4dff4e35464c5b1df8430d8f2c26d64937556f0a28ee311a7ca6293517b",
+    "drive_file_id": "1Tyg4bak7yVulJvBhHVDeBuL-gx-G_3Jr",
+    "lore_approval": "hub-relay-2026-11-21-1439",
+    "proposal_id": "prop-137-fa78b4df"
+  },
+  "turn": 137
+}

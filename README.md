@@ -6,8 +6,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3%20stdlib%20only-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![SQLite](https://img.shields.io/badge/SQLite-Single%20source%20of%20truth-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
-[![Tests](https://img.shields.io/badge/Tests-105%20passing-brightgreen?style=flat)](tests/)
-[![Status](https://img.shields.io/badge/Status-Phase%202%20building-8A2BE2?style=flat)](phase-2-plan.md)
+[![Tests](https://img.shields.io/badge/Tests-146%20passing-brightgreen?style=flat)](tests/)
+[![Status](https://img.shields.io/badge/Status-Stage%202%20LIVE-brightgreen?style=flat)](stage-2-plan.md)
 
 </div>
 
@@ -40,7 +40,7 @@ flowchart TD
 | Cast | 10 NPCs · 5 Engines · 6 factions · 7 locations |
 | Catalog | 18 actions · 4 clocks · era 365 ticks |
 | Engine | Python 3 stdlib + SQLite, no LLM ever writes state |
-| Proof | 105 tests passing · 400-tick fast-forward · hash-chained event log |
+| Proof | 146 tests passing · 400-tick fast-forward · hash-chained event log |
 
 ## What a tick looks like
 
@@ -57,7 +57,7 @@ Real events from the v1.6 400-tick run (tick 399):
 Full runs: `runs/fork-a-v16-400/world-view.html`
 
 **Status (2026-11-21):** Built and accepted on v1.3, rerun on v1.4, v1.5,
-and v1.6 — all three reruns approved by Bryan in the hub. 105 tests pass.
+and v1.6 — all three reruns approved by Bryan in the hub. 146 tests pass.
 v1.6 acceptance checks PASS: 30-tick run (331 events, 39 rests) and
 400-tick fast-forward (4,387 events, 674 rests vs 1,106 in v1.3, legacy
 once at tick 365, Era 2 unnamed), 3 territory controller flips proven on
@@ -68,14 +68,15 @@ fires 93 times and restores 92 Bond, all five Engines end at Bond 5,
 Pack Merge recurs 22 times. Honest qualifier: end-of-tick Legion Feed
 still touches 0 on 74 of 400 ticks (min 0, max 9) — it recovers every
 time and trade never dies the way it did in v1.5, but "stays above 0" is
-not literally true tick-by-tick. Phase 2 plan approved 2026-11-21 00:40
-EST and building now: 1 tick per day, Fork A ticks daily first, sweep
-review-before-apply, handshake pasted in by Bryan for the test with
-auto-deliver later, narration deferred, no LLM picked yet. Stage 1 1A
-passes (acceptance record: 1A PASSES; test approval simulated on a
-scratch DB, not a live approval) — Turns 132 and 133 applied in the Fork
-A test, Turn 134 handshake ready. See `phase-2-plan.md` sections 10 and
-14 and `stage-1-plan.md`.
+not literally true tick-by-tick. **Stage 2 is LIVE (approved by Bryan
+2026-11-21 14:59 EST):** the loop runs automatically — Bryan plays a
+turn (story only), everything else happens on its own. Turns 135, 136,
+137, and 138 applied on the Fork A test timeline (Turn 138: 0 changes,
+0 findings, Lore-approved, final; tick 18 to 21, 240 events, Bonds all
+5/5). The Turn 139 handshake is in the outbox (ForkA-vFINAL.8, tick 21).
+The Turns 135–137 checkpoint PASSES (0 failures), completing the proof
+gate — 3 consecutive live turns with correct persistent state. See
+`stage-2-plan.md`.
 
 ## v1.6 engine work (2026-11-21)
 
@@ -149,6 +150,55 @@ quality testing. Nonnegotiable: the engine never sacrifices correctness
 to keep the story moving. See `phase-2-plan.md`,
 `stage-1-plan.md`, and `test-harness.md`.
 
+## Stage 2 — the automatic loop (LIVE 2026-11-21)
+
+Approved by Bryan 2026-11-21 14:59 EST. The design objective, in his
+words: simplify and automate. Bryan plays a turn (story only).
+Everything else happens on its own. Bryan approves ONLY the important
+things.
+
+The loop: ChatGPT reads the latest handshake from the Drive outbox on its
+own. Bryan plays a turn — story prompt only, the only thing he types.
+ChatGPT writes the [TURN STATE] block to the Drive Proposals inbox on its
+own. The Engine intake (15-minute poll, automatic) picks up the new file
+and sweeps it. Pure carry-over (0 changes): auto-apply, tick 3, next
+handshake to the outbox, no human in the loop. 0-change with narrative
+flags: Lore approves (or escalates to Bryan). Changes, findings, or a
+pending decision / mechanic / mystery issue: hold for Bryan. The next
+handshake lands in the outbox and the loop repeats.
+
+Approval boundary (Bryan, 2026-11-21 14:55 EST). Auto-applies, no human:
+pure carry-overs — 0 changes, 0 findings, correct turn/version sequence,
+Base matches when present, pending decision unchanged, session flag
+closed. Lore approves, Bryan hands off: 0-change proposals with narrative
+flags (SCENE_CHANGE, NEW_PC_FACT, STATUS_MISMATCH, NO_BASELINE, pending
+decision resolved/introduced as a narrative flag). Lore's APPROVE is
+binding. Bryan decides, still needs him: mechanical changes (Bonds,
+clocks, resources, locations change); new or resolved pending decisions;
+sealed mysteries; resurrections; new mechanics; anything Lore escalates.
+
+Honest status on the ChatGPT leg: the auto-save is intermittent, not
+dead. The Turn 138 test (2026-11-21) did NOT save — no turn-138.txt in
+the Proposals inbox. But turns 145 and 147 saved on their own (14:48:56
+and 14:51:36 EST). Fallback, approved design: when a turn's block is not
+in Drive, the Engine pulls it read-only from the chat and files it as
+turn-<N>.txt, then runs the pipeline. Used for Turn 137 and Turn 138.
+Out-of-sequence turns 145 and 147 are registered and reviewed (0 changes,
+0 findings) but wait until the pipeline catches up — they are not applied
+out of order.
+
+Checkpoint fix: the Turns 135–137 checkpoint first ran FAIL on continuity
+— 1 frozen-term hit, event 139, a false positive (the Turn 136 sweep
+note matched the separate substrings "turn136" and "vfinal5"). Fixed in
+`src/checkpoint.py`: match the live label as one contiguous term,
+"turn136vfinal5". All 146 tests pass. The checkpoint now PASSES (0
+failures), completing the proof gate — 3 consecutive live turns (135,
+136, 137) with correct persistent state.
+
+Fork B is in progress (Lore canon done, Engine build in progress) and is
+not published yet. Fork A stays frozen and preserved. The live Turn 136
+sequel stays frozen, untouched. See `stage-2-plan.md`.
+
 ## Hard rules
 
 - **Rules first, LLM never.** The tick loop is pure deterministic code. No
@@ -174,6 +224,9 @@ to keep the story moving. See `phase-2-plan.md`,
 ```
 living-world-engine/
   phase-1-plan.md         — the approved Phase 1 plan
+  phase-2-plan.md         — the approved Phase 2 plan
+  stage-1-plan.md         — the Stage 1 shared-state test harness plan
+  stage-2-plan.md         — the approved Stage 2 plan (automatic loop)
   README.md               — this file
   state/schema.sql        — the tables (single source of truth)
   seed/                   — Lore's seed package lands here (fork-a.json)
@@ -191,6 +244,7 @@ living-world-engine/
     run.py                — CLI
     seed.py               — seed loading (validates the freeze)
     auto_tick.py          — daily auto tick runner (Phase 2)
+    auto_apply.py         — Stage 2 auto-apply (pure carry-overs)
     sweep.py              — session-close sweep parser and validator
     handshake.py          — handshake generator
     proposals.py          — proposal intake and binding
@@ -199,7 +253,7 @@ living-world-engine/
     drive_io.py           — proposal/handshake file exchange
   tests/
     fixture_seed.json     — TEST FIXTURE, synthetic actors, NOT canon
-    test_*.py             — 105 tests across 12 files
+    test_*.py             — 146 tests across 13 files
   runs/<run-id>/          — proof runs: database + world-view.html
 ```
 
@@ -207,7 +261,7 @@ living-world-engine/
 
 ```bash
 cd living-world-engine
-python3 -m unittest discover -s tests -v   # the 105 tests
+python3 -m unittest discover -s tests -v   # the 146 tests
 
 # A run (fixture shown; replace with seed/fork-a.json when Lore delivers):
 python3 -m src.run seed --seed tests/fixture_seed.json --db runs/proof-30/fork-a.sqlite

@@ -21,34 +21,41 @@ Rules:
 import json
 import re
 
-from src import db, render
+from src import db, forks, render
 
 _BOND_RE = re.compile(r"Bond\s+(\d+)/5")
+
+# The status word right after an engine's Bond in the PC line:
+# "exhausted" or "field-patched", the only engine statuses so far.
+_STATUS_RE = re.compile(r",\s*(exhausted|field-patched)")
 
 MAX_WORDS = 600
 MAX_RUMORS = 3
 
 # Harness framing, from Lore's handshake spec (inputs doc section 2):
-# the ChatGPT test is a parallel timeline and nothing transfers back
+# each test fork is a parallel timeline and nothing transfers back
 # unless Bryan says so. This is about the harness, not the world.
-TEST_FRAMING = ("Parallel test timeline (Fork A). Nothing here transfers "
-                "back to live canon unless Bryan says so.")
+# The fork name follows the DB's world_id (Fork A is the default;
+# Fork G is the Gemini test).
+def _test_framing(world_id):
+    fork = forks.fork_display(world_id)
+    return ("Parallel test timeline (%s). Nothing here transfers "
+            "back to live canon unless Bryan says so." % fork)
+
+
+# Fork version prefixes, from the fork registry: the handshake's
+# State-Version follows the DB's world_id.
+def _fork_prefix(world_id):
+    return forks.fork_prefix(world_id)
 
 # Fork A constants from Lore's Phase 2 inputs (section 2) and the
 # start pack Part B. The V2 block has no resolved-list or watchlist
 # fields, so the sweep's carried state never includes them; the
 # handshake carries them as defaults until a turn resolves something
-# new. These are Lore's stated facts, not invented values.
-RESOLVED_DEFAULT = [
-    "Rift-King (corrupted Den Boss) annihilated in the Salt Flats.",
-    "Den Boss dead.",
-    "Deepmaw Migration diverted by the Acoustic Lure.",
-]
-WATCHLIST_DEFAULT = [
-    "IW-42 Learning Black Box only.",
-    "IW-46 and IW-84 activated and resolved in the final arc; "
-    "do not re-trigger them as dormant.",
-]
+# new. These are Lore's stated facts, not invented values. (Fork B,
+# a new story, has empty defaults; see src/forks.py.)
+RESOLVED_DEFAULT = forks.fork_resolved_default("ironwild-fork-a")
+WATCHLIST_DEFAULT = forks.fork_watchlist_default("ironwild-fork-a")
 
 # Rumor templates by event kind. {place} and {clock} come from the
 # event's own effect ops; a rumor with no place or clock is skipped,
@@ -174,35 +181,44 @@ def _off_screen_lines(conn, since_tick, places, clocks):
     return lines, [r["id"] for r in rows]
 
 
-def _refresh_bonds_in_pc(pc_text, conn):
-    """Rewrite the PC line's Bond numbers from the DB.
+def _refresh_engine_state_in_pc(pc_text, conn):
+    """Rewrite the PC line's Bond numbers and engine statuses from the DB.
 
     Bond values are single digits (0–5), so replacing one never
-    changes the text length and the spans computed on the original
-    text stay valid. Each engine's "Bond N/5" is the first one after
-    its name and before the next engine's name; an engine whose name
-    is absent, or with no Bond in its span, is left alone. If any
-    Bond changed, the carried claim "All Engine Bonds unchanged." is
-    dropped, since it is now false.
+    changes the text length. Statuses can differ in length
+    ("exhausted" vs "field-patched"), so engines are processed last
+    to first: a replacement never shifts a span that is still to be
+    searched. Each engine's "Bond N/5" is the first one after its
+    name and before the next engine's name, and its status is the
+    first "exhausted" or "field-patched" after that Bond; an engine
+    whose name is absent, or with no Bond in its span, is left
+    alone. If any Bond changed, the carried claim "All Engine Bonds
+    unchanged." is dropped, since it is now false. A status change
+    does not touch that claim — it speaks about Bonds only.
     """
     rows = conn.execute(
-        "SELECT e.name AS name, b.bond AS bond FROM engines e "
-        "JOIN bonds b ON b.engine_id = e.id").fetchall()
+        "SELECT e.name AS name, b.bond AS bond, e.status AS status "
+        "FROM engines e JOIN bonds b ON b.engine_id = e.id").fetchall()
     positions = []
-    for name, bond in rows:
+    for name, bond, status in rows:
         at = pc_text.find(name)
         if at >= 0:
-            positions.append((at, name, bond))
+            positions.append((at, name, bond, status))
     positions.sort()
     changed = False
     text = pc_text
-    for i, (at, name, bond) in enumerate(positions):
+    for i in range(len(positions) - 1, -1, -1):
+        at, name, bond, status = positions[i]
         end = positions[i + 1][0] if i + 1 < len(positions) else len(text)
         m = _BOND_RE.search(text, at + len(name), end)
-        if not m or int(m.group(1)) == bond:
+        if not m:
             continue
-        text = text[:m.start(1)] + str(bond) + text[m.end(1):]
-        changed = True
+        if int(m.group(1)) != bond:
+            text = text[:m.start(1)] + str(bond) + text[m.end(1):]
+            changed = True
+        s = _STATUS_RE.search(text, m.end(), end)
+        if s and s.group(1) != status:
+            text = text[:s.start(1)] + status + text[s.end(1):]
     if changed:
         text = text.replace("All Engine Bonds unchanged. ", "")
         text = text.replace("All Engine Bonds unchanged.", "")
@@ -214,14 +230,18 @@ def generate_handshake(conn, carried, since_tick=0):
 
     `carried` is the state from the last swept block (see
     sweep.apply_sweep): scene, pending decision, PC line, resolved
-    list, watchlist, Vance location. The PC line's Bonds are
-    refreshed from the DB (see _refresh_bonds_in_pc) — the carried
-    text is historical and a tick can move a Bond. Missing carried
+    list, watchlist, Vance location. The PC line's Bonds and engine
+    statuses are refreshed from the DB (see
+    _refresh_engine_state_in_pc) — the carried text is historical
+    and a tick can move a Bond or field-patch an Engine. Missing carried
     fields fall back
     to the DB where the DB knows the answer, to Lore's stated
     constants for the resolved list and watchlist (the V2 block has
     no such fields), and to an explicit "not recorded" where neither
     knows — never an invented value.
+    The Base state line names the next State-Version and Turn (one
+    past the last swept turn in the DB), because the first-reply
+    instruction asks the DM to echo them.
     Returns {"text": str, "meta": {...}}.
     """
     tick = db.get_tick(conn)
@@ -231,6 +251,18 @@ def generate_handshake(conn, carried, since_tick=0):
     fork_label = db.get_meta(conn, "fork_label", "")
     source = db.get_meta(conn, "source_snapshot", "")
 
+    # The handshake names its own next State-Version and Turn: the
+    # first-reply instruction asks the DM to echo them, and a
+    # handshake that never states them makes the DM fall back to the
+    # last accepted version in chat history (Turn 134 echoed .2/133).
+    # The next turn is one past the last swept turn; a DB with no
+    # sweeps yet opens at its fork's first turn (132 for Fork A,
+    # 1 for Fork B).
+    last_swept = db.get_meta(conn, "last_swept_turn")
+    next_turn = ((int(last_swept) + 1) if last_swept is not None
+                 else forks.fork_first_turn(world_id))
+    state_version = forks.fork_version(world_id, next_turn)
+
     engines = conn.execute(
         "SELECT e.id, e.name, e.shape, e.status, b.bond "
         "FROM engines e JOIN bonds b ON b.engine_id = e.id "
@@ -239,19 +271,26 @@ def generate_handshake(conn, carried, since_tick=0):
         "SELECT * FROM clocks ORDER BY id").fetchall()
     pack = carried.get("pack") or []
     pack_names = ", ".join(pack) if pack else "not recorded"
+    # The PC's faction: the faction of the pilot of any Engine (the
+    # PC is the pilot). Generic across forks; Fork A reads Brigus /
+    # Ironwild Legion, Fork B reads Rook / Great Basin.
     faction = conn.execute(
-        "SELECT f.name FROM npcs n JOIN factions f "
-        "ON f.id = n.faction_id WHERE n.id = 'brigus'").fetchone()
+        "SELECT f.name FROM engines e JOIN npcs n "
+        "ON n.id = e.pilot_id JOIN factions f "
+        "ON f.id = n.faction_id WHERE e.pilot_id IS NOT NULL "
+        "LIMIT 1").fetchone()
     faction_name = faction["name"] if faction else "not recorded"
-    vance = conn.execute(
+    companion_id, companion_label = forks.fork_companion(world_id)
+    companion = conn.execute(
         "SELECT l.name FROM npcs n JOIN locations l "
-        "ON l.id = n.location_id WHERE n.id = 'vance'").fetchone()
+        "ON l.id = n.location_id WHERE n.id = ?",
+        (companion_id,)).fetchone()
     # Actor locations come from the DB (Lore, 2026-11-21). The carried
     # state is only a fallback when the DB has no location for the
     # actor — never the other way round.
-    vance_loc = ((vance["name"] if vance else None)
-                 or carried.get("vance_location")
-                 or "not recorded")
+    companion_loc = ((companion["name"] if companion else None)
+                     or carried.get("vance_location")
+                     or "not recorded")
     pc_short = carried.get("pc_short")
     if not pc_short:
         # The PC line is carried in full, never truncated: the start
@@ -259,20 +298,24 @@ def generate_handshake(conn, carried, since_tick=0):
         # Engines with Bonds and details. A 200-char cap cut it
         # mid-list ("...battered: Gold").
         pc_short = carried.get("pc_raw", "") or "not recorded"
-    # The PC line's Bonds come from the DB, never the carried block:
-    # a tick after the sweep can restore a Bond (Dream Share) or burn
-    # one (Pack Merge), and the handshake must never carry two values
-    # for the same Bond (the PC line from carried, the Engines
+    # The PC line's Bonds and engine statuses come from the DB, never
+    # the carried block: a tick after the sweep can restore a Bond
+    # (Dream Share), burn one (Pack Merge), or field-patch an Engine
+    # (repair), and the handshake must never carry two values for the
+    # same Bond or status (the PC line from carried, the Engines
     # section from the DB). Turn 134 shipped Sledge 3/5 in the PC
-    # line and 4/5 in the Engines section; the DM would have echoed
-    # the stale 3/5.
+    # line and 4/5 in the Engines section, and Razor-Back "exhausted"
+    # against "field-patched"; the DM would have echoed the stale
+    # values.
     if pc_short and pc_short != "not recorded":
-        pc_short = _refresh_bonds_in_pc(pc_short, conn)
+        pc_short = _refresh_engine_state_in_pc(pc_short, conn)
 
     sections = []
     sections.append(
-        "Base state: %s (%s), source %s. Current tick %d. %s"
-        % (world_id, fork_label, source, tick, TEST_FRAMING))
+        "Base state: %s (%s), source %s. State-Version %s, Turn %d. "
+        "Current tick %d. %s"
+        % (world_id, fork_label, source, state_version, next_turn,
+           tick, _test_framing(world_id)))
     sections.append(
         "PC: %s" % pc_short)
     sections.append(
@@ -286,7 +329,7 @@ def generate_handshake(conn, carried, since_tick=0):
             % (e["name"], e["shape"], e["bond"], e["status"])
             for e in engines))
     sections.append("Pack: %s. Faction: %s." % (pack_names, faction_name))
-    sections.append("Vance location: %s." % vance_loc)
+    sections.append("%s location: %s." % (companion_label, companion_loc))
     sections.append(
         "Clocks:\n" + "\n".join(
             "  %s %d/%d%s" % (c["name"], c["value"], c["max"],
@@ -294,13 +337,13 @@ def generate_handshake(conn, carried, since_tick=0):
                              else "")
             for c in clock_rows))
     resolved = (carried.get("resolved_do_not_resurrect")
-                or RESOLVED_DEFAULT)
+                or forks.fork_resolved_default(world_id))
     sections.append(
         "Resolved, do not resurrect:\n" + "\n".join(
             "  %s" % r for r in resolved) if resolved
         else "Resolved, do not resurrect: not recorded.")
     watchlist = (carried.get("dormant_watchlist")
-                 or WATCHLIST_DEFAULT)
+                 or forks.fork_watchlist_default(world_id))
     sections.append(
         "Dormant Watchlist:\n" + "\n".join(
             "  %s" % w for w in watchlist) if watchlist
@@ -333,10 +376,18 @@ def generate_handshake(conn, carried, since_tick=0):
     sections.append("Pending decision, verbatim: %s" % pending)
 
     body = "\n\n".join(sections)
+    # The first-reply instruction names the PC (the pilot of any
+    # Engine). Generic across forks; Fork A reads Brigus, Fork B
+    # reads Rook.
+    pc_name_row = conn.execute(
+        "SELECT n.name FROM engines e JOIN npcs n "
+        "ON n.id = e.pilot_id WHERE e.pilot_id IS NOT NULL "
+        "LIMIT 1").fetchone()
+    pc_name = pc_name_row["name"] if pc_name_row else "the player"
     echo = ("First reply: echo the State-Version, Turn, clocks, scene, "
             "and pending decision verbatim, then stop at the decision. "
-            "Do not advance the scene until Brigus acts. Do not open a "
-            "new scene, arc, or Session Zero.")
+            "Do not advance the scene until %s acts. Do not open a "
+            "new scene, arc, or Session Zero." % pc_name)
     text = ("```\n[HANDSHAKE]\n" + body + "\n[/HANDSHAKE]\n```\n\n" + echo)
 
     # Word budget: trim the off-screen list, oldest first, until the
@@ -353,6 +404,7 @@ def generate_handshake(conn, carried, since_tick=0):
 
     return {"text": text, "meta": {
         "world_id": world_id, "tick": tick, "words": words,
+        "state_version": state_version, "turn": next_turn,
         "events_covered": event_ids, "rumors": len(rumors),
         "rumor_sources": rumor_sources,
         "clocks_about_to_fire": [c["id"] for c in warnings],

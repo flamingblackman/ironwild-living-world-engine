@@ -1,0 +1,18 @@
+{
+  "changes": [],
+  "dry_run": false,
+  "findings": [],
+  "lore_approved": true,
+  "ok": true,
+  "proposal_binding": {
+    "applied_at": "2026-11-21T15:33:39.816760+00:00",
+    "approved_by": "Bryan",
+    "content_hash": "0e781bff89d6c87b4853432752d009b79f6fe8b07e0f4e1cbdee34263a70436b",
+    "drive_file_id": "16AJSkjDVYD43wnaCKr5m6hC43beR_DsQ",
+    "proposal_id": "prop-135-0e781bff"
+  },
+  "proposal_id": "prop-135-0e781bff",
+  "review": "Sweep review \u2014 Turn 135 ForkA-vFINAL.4\nBased on: Turn 135 ForkA-vFINAL.4 | Last approved: Turn 134 ForkA-vFINAL.3\nScene: Great Basin \u2014 Legion Engineering Grounds | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
+  "state_version": "ForkA-vFINAL.4",
+  "turn": 135
+}

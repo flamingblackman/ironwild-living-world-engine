@@ -1,0 +1,35 @@
+{
+  "clocks_about_to_fire": [],
+  "events_covered": [
+    104,
+    103,
+    102,
+    101,
+    100,
+    99,
+    98,
+    97,
+    96,
+    95,
+    94,
+    93,
+    92,
+    91,
+    90,
+    89,
+    88,
+    87,
+    86,
+    85
+  ],
+  "rumor_sources": [
+    100,
+    98
+  ],
+  "rumors": 2,
+  "state_version": "ForkA-vFINAL.4",
+  "tick": 9,
+  "turn": 135,
+  "words": 599,
+  "world_id": "ironwild-fork-a"
+}

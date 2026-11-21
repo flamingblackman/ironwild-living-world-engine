@@ -1,0 +1,13 @@
+[TURN STATE]
+
+Universe: Ironwild | State-Version: ForkA-vFINAL.7 | Turn: 138
+
+Clocks: Dust-Baron Retaliation 0/6; Concord Blockade 0/6; Legion Cohesion 0/6; Great Basin Recovery 6/6 (Complete)
+
+Scene: Great Basin — Legion Supply Stores and Expedition Preparations | SCENE_TENSION: Low | ACTIVE_TRADE_OFF: A long exploratory journey with Gold Sledge requires provisions and potentially repairs, while civilian housing, Legion operations, and Engine recovery also depend on limited supplies and salvage.
+
+Player character: Brigus, Seedborn, King of the Great Basin, Beacon. Wounds: None. Status: exhausted after the Feral God merge, victorious, directing reconstruction and has chosen development of an elite rapid-response force to protect settlements, caravans, and wounded Engines. Brigus has directed that warm and secure homes be prioritized for citizens of the Great Basin. He has reflected upon his Seedborn origin, which remains an unresolved mystery. He has instructed Gold Sledge to remain at the hangar, begun preparing supplies for a long exploratory journey, and informed Vance, Tull, and Queen Kaelen that he intends to travel with Gold Sledge alone. No expedition departure has occurred. Five Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 5/5, exhausted and battered, Titanium-Cestus (Diamond-Claw melted Turn 126), neural Sentient Seat (not a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, field-patched and battered, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, adult Molt Turn 129, no longer juvenile or hard-light winged; Razor-Back, Bond 5/5, field-patched, previously exhausted and battered following Turn 128 Pack Merge; Goliath Dreadnought, Bond 5/5, field-patched, pre-war machine, left mortar pod destroyed Turn 112; Surveyor-Strider, Bond 5/5, exhausted and battered, observation and fire-control platform. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Vance, Tull, and Queen Kaelen are in Great Basin; Nest-Keeper is in Chalk Canyons. Faction: Ironwild Legion, 600 strong, including absorbed Dust-Baron mercenaries. Great Basin fortified. Elite rapid-response force selected as the development objective; doctrine drafted, personnel not yet selected, equipment not yet manufactured. Warm and secure civilian housing designated as Brigus's priority, with implementation pending resource assessment. Supplies for the expedition are being assessed; no quantities allocated, resources expended, repairs completed, or Engine Bonds changed by this proposal.
+
+Unresolved Decisions: none
+
+[/TURN STATE]

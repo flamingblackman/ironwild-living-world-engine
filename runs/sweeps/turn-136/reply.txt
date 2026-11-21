@@ -1,0 +1,54 @@
+IRONWILD FORK A · TURN 136 · TICK 12
+
+The Beacon Year — Forging the Vanguard
+
+The Great Basin's rebuilt defenses have held against another series of attacks. Inside the Legion Engineering Grounds, the air smells of hot metal, welding smoke, and freshly cut armor plate.
+
+A heavy metallic CLANG rings through the yard.
+
+Vance stands beside Skytalon's newly patched chassis, inspecting the seams where the adult Shadow-Owl's radar-absorbent armor meets its restored plating.
+
+"She's ready for field work again," Vance says, wiping black grease from his hands. "But Sledge and Strider still need attention."
+
+Nearby, Gold Sledge's massive black-and-gold frame rests beneath the engineering gantry. Its Titanium-Cestus catches the furnace light. The gorilla Bulwark remains exhausted, but its neural Sentient Seat is responsive.
+
+Queen Kaelen approaches the central drafting table.
+
+"The city is fortified. The patrols are holding. We've bought ourselves room to build something better."
+
+She spreads out the drafted doctrine for the elite rapid-response force.
+
+"We know what this force is supposed to protect. Settlements. Caravans. Wounded Engines. But we haven't selected its personnel or built its equipment."
+
+Vance looks toward the repair bays.
+
+"And every engineer we put on new equipment is one we can't put on recovering the existing Pack."
+
+Kaelen nods.
+
+"Then the question belongs to our King."
+
+Beyond the engineering yard, the ordinary work of rebuilding continues. No fresh alarm sounds. No enemy has breached the walls.
+
+The decision is what deserves Brigus's attention now.
+
+What does Brigus do?
+
+PROPOSED STATE · BASE ForkA-vFINAL.4 · NO ENGINE COMMIT
+
+Google Drive proposal saved and verified
+
+turn-136.txt in Ironwild Fork A — Proposals
+
+Open proposal in Google Drive
+
+Awaiting Muse validation and Bryan's approval. No state changes committed.
+Proposed turn state
+Plain text
+[TURN STATE]
+Universe: Ironwild | State-Version: ForkA-vFINAL.5 | Turn: 136
+Clocks: Concord Blockade 0/6; Dust-Baron Retaliation 0/6; Great Basin Recovery 6/6 (Complete); Legion Cohesion 0/6
+Scene: Great Basin — Legion Engineering Grounds | SCENE_TENSION: Low | ACTIVE_TRADE_OFF: Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.
+Player character: Brigus, Seedborn, King of the Great Basin, Beacon. Wounds: None. Status: exhausted after the Feral God merge, victorious, directing reconstruction and has chosen development of an elite rapid-response force to protect settlements, caravans, and wounded Engines. Five Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 5/5, exhausted and battered, Titanium-Cestus (Diamond-Claw melted Turn 126), neural Sentient Seat (not a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, field-patched and battered, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, adult Molt Turn 129, no longer juvenile or hard-light winged; Razor-Back, Bond 5/5, field-patched, previously exhausted and battered following Turn 128 Pack Merge; Goliath Dreadnought, Bond 5/5, field-patched, pre-war machine, left mortar pod destroyed Turn 112; Surveyor-Strider, Bond 5/5, exhausted and battered, observation and fire-control platform. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Vance, Tull, and Queen Kaelen are in Great Basin; Nest-Keeper is in Chalk Canyons. Faction: Ironwild Legion, 600 strong, including absorbed Dust-Baron mercenaries. Great Basin fortified. Elite rapid-response force selected as the development objective; doctrine drafted, personnel not yet selected, equipment not yet manufactured.
+Unresolved Decisions: none
+[/TURN STATE]

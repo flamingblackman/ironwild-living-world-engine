@@ -1,1 +1,9 @@
-{"opened_at":null,"opened_by":null,"session_open":false,"turn":null,"world_id":"ironwild-fork-a"}
+{
+  "closed_at": "2026-11-21T13:42:00-05:00",
+  "closed_by": "hub",
+  "opened_at": "2026-11-21T13:26:18-05:00",
+  "opened_by": "engine",
+  "session_open": false,
+  "turn": 136,
+  "world_id": "ironwild-fork-a"
+}

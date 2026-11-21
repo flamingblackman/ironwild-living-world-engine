@@ -12,11 +12,13 @@ Safeguards (stage-1-plan.md section 3):
   Drive file ID recorded. A revised file is a new proposal.
 - Base state version: the existing STALE_PROPOSAL / NO_VERSION /
   TURN_ORDER findings in sweep.validate.
-- Strict Fork A identifier: validate_fork_a — Universe must be
-  Ironwild and State-Version must be ForkA-vFINAL.<k>. This check
-  lives HERE, not in sweep.validate, because the manual sweep path
-  must keep accepting the historical samples (Turn 131 vFINAL, Turn
-  136 vFINAL.5, Turn 138 vFINAL.7) for its own checks.
+- Strict fork identifier: validate_fork — Universe must be
+  Ironwild and State-Version must be the fork's own version
+  (ForkA-vFINAL.<k> for Fork A, ForkG-vFINAL.<k> for Fork G),
+  derived from the DB's world_id. This check lives HERE, not in
+  sweep.validate, because the manual sweep path must keep accepting
+  the historical samples (Turn 131 vFINAL, Turn 136 vFINAL.5, Turn
+  138 vFINAL.7) for its own checks.
 - Atomic approval-and-commit: the apply verifies the binding, then
   runs apply_sweep in one transaction, and records the approval
   (approver, timestamp, proposal ID, content hash) in applied.json.
@@ -27,7 +29,7 @@ import json
 import os
 import re
 
-from src import db, drive_io, events, sweep as sweep_mod
+from src import db, forks, drive_io, events, sweep as sweep_mod
 
 # The proposals tree is scopable for tests: IRONWILD_PROPOSALS_DIR
 # points the registry + proposal records at a scratch dir, so the 1A
@@ -35,8 +37,6 @@ from src import db, drive_io, events, sweep as sweep_mod
 PROPOSALS_DIR = os.environ.get(
     "IRONWILD_PROPOSALS_DIR", os.path.join("runs", "proposals"))
 REGISTRY_PATH = os.path.join(PROPOSALS_DIR, "registry.json")
-
-FORK_VERSION_RE = re.compile(r"^ForkA-vFINAL(\.\d+)?$")
 
 
 def content_hash(content):
@@ -47,25 +47,42 @@ def proposal_id(turn, content):
     return "prop-%d-%s" % (turn, content_hash(content)[:8])
 
 
-def validate_fork_a(parsed):
-    """Fork A identifier check (intake only). Returns findings; an
-    error finding blocks intake, a proposal with one is rejected."""
+def validate_fork(parsed, world_id):
+    """Fork identifier check (intake only). Returns findings; an
+    error finding blocks intake, a proposal with one is rejected.
+
+    The expected version prefix comes from the DB's world_id, so a
+    Fork A block is rejected from the Fork B pipeline and vice versa.
+    A world_id the table does not know falls back to Fork A, the
+    default pipeline (the fixture DBs carry world_id ironwild-fork-a
+    and the manual sweep path never calls this function).
+    """
+    prefix = forks.fork_prefix(world_id)
+    version_re = re.compile(forks.fork_version_re(world_id))
     findings = []
     if parsed.get("universe") != "Ironwild":
         findings.append({
             "level": "error", "code": "NOT_FORK_A",
-            "message": "Universe is %r, not Ironwild; only Fork A "
+            "message": "Universe is %r, not Ironwild; only Fork %s "
                        "proposals enter this pipeline."
-                       % (parsed.get("universe") or "",)})
+                       % (parsed.get("universe") or "",
+                          prefix[-1])})
     version = parsed.get("state_version") or ""
-    if not FORK_VERSION_RE.match(version):
+    if not version_re.match(version):
         findings.append({
             "level": "error", "code": "NOT_FORK_A",
-            "message": "State-Version %r is not a Fork A version "
-                       "(ForkA-vFINAL or ForkA-vFINAL.<k>); a live-canon "
-                       "or other-fork block never enters Fork A."
-                       % version})
+            "message": "State-Version %r is not a Fork %s version "
+                       "(%s); a live-canon "
+                       "or other-fork block never enters Fork %s."
+                       % (version, prefix[-1],
+                          forks.fork_version_example(world_id),
+                          prefix[-1])})
     return findings
+
+
+def validate_fork_a(parsed):
+    """Fork A identifier check — the Fork A case of validate_fork."""
+    return validate_fork(parsed, "ironwild-fork-a")
 
 
 def load_registry():
@@ -81,6 +98,36 @@ def save_registry(registry):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(registry, f, indent=2, sort_keys=True)
     os.replace(tmp, REGISTRY_PATH)
+
+
+def record_lore_approval(pid, submission_id):
+    """Record Lore's APPROVE verdict on a held (flagged) proposal, so
+    the audit trail shows who cleared it — a Lore-approved apply,
+    not a pure auto-apply. Writes
+    runs/proposals/<pid>/lore-approved.json and marks the registry
+    entry. Does not apply anything; the apply itself goes through
+    apply_proposal as usual."""
+    registry = load_registry()
+    entry = registry.get(pid)
+    if entry is None:
+        raise sweep_mod.SweepError("unknown proposal %s: no such "
+                                   "proposal in the registry" % pid)
+    record = {
+        "proposal_id": pid,
+        "lore_verdict": "APPROVE",
+        "lore_submission": submission_id,
+        "content_hash": entry["content_hash"],
+        "turn": entry["turn"],
+        "state_version": entry["state_version"],
+    }
+    out_dir = _proposal_dir(pid)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "lore-approved.json"), "w") as f:
+        json.dump(record, f, indent=2, sort_keys=True)
+    entry["lore_approved"] = True
+    entry["lore_approval_submission"] = submission_id
+    save_registry(registry)
+    return record
 
 
 def _proposal_dir(pid):
@@ -113,7 +160,13 @@ def intake_file(drive_file_id, name, content, conn):
     existing = registry.get(pid)
     if existing and existing.get("content_hash") == content_hash(content):
         return existing
-    findings = sweep_mod.validate(parsed, conn) + validate_fork_a(parsed)
+    # The fork check follows the DB's world_id: a Fork A block is
+    # rejected from the Fork G pipeline and vice versa.
+    row = conn.execute(
+        "SELECT value FROM meta WHERE key = 'world_id'").fetchone()
+    world_id = row["value"] if row else "ironwild-fork-a"
+    findings = sweep_mod.validate(parsed, conn) + validate_fork(
+        parsed, world_id)
     try:
         changes = sweep_mod.diff(parsed, conn)
     except sweep_mod.SweepError as exc:
@@ -191,7 +244,8 @@ def intake_folder(folder_id, conn, downloads_dir=None):
 
 
 def apply_proposal(pid, conn, approved_by, flag_path=None,
-                   resource_changes=None, downloads_dir=None):
+                   resource_changes=None, downloads_dir=None,
+                   lore_approval=None):
     """Apply a reviewed proposal by ID, with approval binding.
 
     Verifies, before touching the DB: the registry entry exists and
@@ -199,8 +253,13 @@ def apply_proposal(pid, conn, approved_by, flag_path=None,
     content still hashes to the reviewed content (re-downloaded).
     Then runs apply_sweep in one transaction on the STORED (reviewed)
     content, and records the approval binding in the applied record.
-    Raises sweep_mod.SweepError on any refusal — nothing is applied.
-    Returns the apply_sweep result plus the binding.
+    `lore_approval` is the Lore submission id when the apply rests
+    on Lore's verdict: the command authorization is still Bryan's
+    standing approval (the guard below), but the recorded approver
+    is Lore, so the audit trail distinguishes a Lore-approved apply
+    from a Bryan-approved one. Raises sweep_mod.SweepError on any
+    refusal — nothing is applied. Returns the apply_sweep result
+    plus the binding.
     """
     registry = load_registry()
     entry = registry.get(pid)
@@ -236,16 +295,18 @@ def apply_proposal(pid, conn, approved_by, flag_path=None,
     parsed = sweep_mod.parse_state_block(stored)
     result = sweep_mod.apply_sweep(
         parsed, conn, approved_by, flag_path=flag_path,
-        resource_changes=resource_changes)
+        resource_changes=resource_changes, lore_approval=lore_approval)
     import datetime
     result["proposal_binding"] = {
         "proposal_id": pid,
         "drive_file_id": entry["drive_file_id"],
         "content_hash": entry["content_hash"],
-        "approved_by": approved_by,
+        "approved_by": "Lore" if lore_approval else approved_by,
         "applied_at": datetime.datetime.now(
             datetime.timezone.utc).isoformat(),
     }
+    if lore_approval:
+        result["proposal_binding"]["lore_approval"] = lore_approval
     entry["status"] = "applied"
     entry["applied_at"] = result["proposal_binding"]["applied_at"]
     save_registry(registry)

@@ -1,0 +1,25 @@
+{
+  "applied_at": "2026-11-21T14:42:16.585899+00:00",
+  "approval": "Bryan standing 0-change auto-apply approval, 2026-11-21 09:30 EST",
+  "approved_by": "Bryan",
+  "content_hash": "98e7fdc38edba951e9f4d63691da37b6a35e9e39c3c933aa0def59e69bf05c25",
+  "drive_file_id": "1OZRNn9EYDIALwdDmTSpN08REm_PNd0sr",
+  "events_after": 138,
+  "events_before": 104,
+  "handshake": {
+    "drive_file_id": "1D8D8x0N5BPxTbYo0POKTNkdoXT2HuNnZ",
+    "path": "runs/acceptance-guard/runs/handshakes/turn-136.md",
+    "state_version": "ForkA-vFINAL.5",
+    "turn": 136,
+    "words": 600
+  },
+  "hash_chain_ok": true,
+  "invariant_problems": [],
+  "proposal_id": "prop-135-98e7fdc3",
+  "state_hash": "bfd1cf0944e1fbc1c6632789909e5fbd874bda3be5d5897e33e7c0fd430afbf3",
+  "state_version": "ForkA-vFINAL.4",
+  "tick_after": 12,
+  "tick_before": 9,
+  "tick_halted": null,
+  "turn": 135
+}

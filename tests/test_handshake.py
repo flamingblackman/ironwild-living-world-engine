@@ -235,6 +235,89 @@ class TestHandshake(unittest.TestCase):
         self.assertIn("All Engine Bonds unchanged", pc_line)
         conn.close()
 
+    def test_pc_engine_statuses_come_from_db(self):
+        # Same class as the stale-Bond defect: the Turn 134
+        # handshake's PC line said Razor-Back "exhausted" while the
+        # DB and the Engines section said field-patched. Statuses
+        # refresh from the DB like Bonds do.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        conn.execute("UPDATE engines SET status = 'field-patched' "
+                     "WHERE id IN ('razor_back', 'goliath')")
+        pc = ("Brigus, Seedborn. Five Engines: Gold Sledge, Bond 3/5, "
+              "exhausted and battered; Skytalon, Bond 5/5, exhausted "
+              "and battered; Razor-Back, Bond 3/5, exhausted and "
+              "battered following Turn 128 Pack Merge; Goliath "
+              "Dreadnought, Bond 5/5, field-patched; Surveyor-Strider, "
+              "Bond 5/5, exhausted and battered.")
+        carried = dict(CARRIED, pc_short=None, pc_raw=pc)
+        result = handshake_mod.generate_handshake(conn, carried)
+        pc_line = [l for l in result["text"].splitlines()
+                   if l.startswith("PC: ")][0]
+        self.assertIn("Razor-Back, Bond 3/5, field-patched and battered",
+                      pc_line)
+        self.assertIn("Gold Sledge, Bond 3/5, exhausted and battered",
+                      pc_line)
+        self.assertIn("Goliath Dreadnought, Bond 5/5, field-patched",
+                      pc_line)
+        conn.close()
+
+    def test_framing_names_the_fork(self):
+        # Fork G's handshake must say "(Fork G)", not "(Fork A)":
+        # the framing follows the DB's world_id.
+        from tests.helpers import fresh_fork_g_db
+        conn, _ = fresh_fork_g_db(os.path.join(tempfile.mkdtemp(),
+                                               "fork-g.sqlite"))
+        result = handshake_mod.generate_handshake(conn, CARRIED)
+        self.assertIn("Parallel test timeline (Fork G).",
+                      result["text"])
+        self.assertNotIn("Parallel test timeline (Fork A).",
+                         result["text"])
+        conn.close()
+        # And Fork A still says Fork A.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        result = handshake_mod.generate_handshake(conn, CARRIED)
+        self.assertIn("Parallel test timeline (Fork A).",
+                      result["text"])
+        conn.close()
+
+    def test_base_state_names_next_version_and_turn(self):
+        # The handshake must state its own State-Version and Turn:
+        # the first-reply instruction asks the DM to echo them, and
+        # a handshake that never names them makes the DM fall back
+        # to the last accepted version in chat history (Turn 134
+        # echoed ForkA-vFINAL.2 / Turn 133). Fresh DB, no sweeps:
+        # the first DM turn is 132, ForkA-vFINAL.1.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        result = handshake_mod.generate_handshake(conn, CARRIED)
+        self.assertIn("State-Version ForkA-vFINAL.1, Turn 132.",
+                      result["text"])
+        self.assertEqual(result["meta"]["state_version"],
+                         "ForkA-vFINAL.1")
+        self.assertEqual(result["meta"]["turn"], 132)
+        conn.close()
+        # After Turn 133 is swept, the next handshake is .3/134.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        db.set_meta(conn, "last_swept_turn", 133)
+        result = handshake_mod.generate_handshake(conn, CARRIED)
+        self.assertIn("State-Version ForkA-vFINAL.3, Turn 134.",
+                      result["text"])
+        self.assertEqual(result["meta"]["state_version"],
+                         "ForkA-vFINAL.3")
+        self.assertEqual(result["meta"]["turn"], 134)
+        conn.close()
+        # Fork G follows its own prefix.
+        from tests.helpers import fresh_fork_g_db
+        conn, _ = fresh_fork_g_db(os.path.join(tempfile.mkdtemp(),
+                                               "fork-g.sqlite"))
+        result = handshake_mod.generate_handshake(conn, CARRIED)
+        self.assertIn("State-Version ForkG-vFINAL.1, Turn 132.",
+                      result["text"])
+        conn.close()
+
     def test_skipped_ops_render_as_nothing(self):
         # A skipped op never happened: its note text must not appear
         # in the off-screen lines (the first Turn 133 handshake

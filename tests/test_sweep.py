@@ -185,6 +185,47 @@ class TestValidateAndApply(unittest.TestCase):
         self.assertTrue(ok)
         conn.close()
 
+    def test_lore_approval_labels_the_apply_as_lore(self):
+        # A Lore-approved apply records Lore (not Bryan) as the
+        # approver, in both the returned record and the sweep note
+        # event, so the audit trail distinguishes it from a
+        # Bryan-approved apply.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        p = sweep_mod.parse_state_block(
+            _fork_block(clocks="Dust-Baron Retaliation 2/6"))
+        with tempfile.TemporaryDirectory() as tmp:
+            flag = os.path.join(tmp, "session.json")
+            result = sweep_mod.apply_sweep(
+                p, conn, approved_by="Bryan", flag_path=flag,
+                lore_approval="lore-sub-1")
+        self.assertEqual(result["approved_by"], "Lore")
+        self.assertEqual(result["lore_approval"], "lore-sub-1")
+        note = conn.execute(
+            "SELECT effect FROM events WHERE action = 'sweep' "
+            "ORDER BY id DESC LIMIT 1").fetchone()[0]
+        self.assertIn("Lore-approved (submission lore-sub-1)", note)
+        self.assertNotIn("approved by Bryan", note)
+        conn.close()
+
+    def test_bryan_apply_still_labels_bryan(self):
+        # Without a Lore submission the record stays Bryan-approved.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        p = sweep_mod.parse_state_block(
+            _fork_block(clocks="Dust-Baron Retaliation 2/6"))
+        with tempfile.TemporaryDirectory() as tmp:
+            flag = os.path.join(tmp, "session.json")
+            result = sweep_mod.apply_sweep(p, conn, approved_by="Bryan",
+                                           flag_path=flag)
+        self.assertEqual(result["approved_by"], "Bryan")
+        self.assertNotIn("lore_approval", result)
+        note = conn.execute(
+            "SELECT effect FROM events WHERE action = 'sweep' "
+            "ORDER BY id DESC LIMIT 1").fetchone()[0]
+        self.assertIn("approved by Bryan", note)
+        conn.close()
+
     def test_bond_change_applies(self):
         conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
                                              "fork.sqlite"))
@@ -275,6 +316,77 @@ class TestValidateAndApply(unittest.TestCase):
         self.assertTrue(any(f["code"] == "NO_VERSION"
                             and f["level"] == "error"
                             for f in findings))
+        conn.close()
+
+
+class TestBaseLine(unittest.TestCase):
+    """The Gemini Skill adds a `Base:` line to every [TURN STATE]
+    block (the version the proposal was built on). Before this
+    field was formalized, the line polluted State-Version
+    ("ForkA-vFINAL.4 | Base: ForkA-vFINAL.3") and the intake
+    rejected the block as NOT_FORK_A."""
+
+    def _base_block(self, turn=135, version="ForkA-vFINAL.4",
+                    base="ForkA-vFINAL.3"):
+        block = _fork_block(turn=turn, version=version)
+        return block.replace(" | Turn: %d" % turn,
+                             " | Base: %s | Turn: %d" % (base, turn))
+
+    def test_base_line_parses_clean(self):
+        p = sweep_mod.parse_state_block(self._base_block())
+        self.assertEqual(p["state_version"], "ForkA-vFINAL.4")
+        self.assertEqual(p["base_version"], "ForkA-vFINAL.3")
+        self.assertEqual(p["turn"], 135)
+        from src import proposals as proposals_mod
+        self.assertEqual(proposals_mod.validate_fork_a(p), [])
+
+    def test_base_matching_last_swept_is_not_flagged(self):
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        db.set_meta(conn, "last_swept_turn", 134)
+        db.set_meta(conn, "last_swept_version", "ForkA-vFINAL.3")
+        p = sweep_mod.parse_state_block(self._base_block())
+        findings = sweep_mod.validate(p, conn)
+        self.assertFalse(any(f["code"] == "BASE_MISMATCH"
+                             for f in findings))
+        conn.close()
+
+    def test_base_mismatching_last_swept_is_flagged_not_error(self):
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        db.set_meta(conn, "last_swept_turn", 133)
+        db.set_meta(conn, "last_swept_version", "ForkA-vFINAL.2")
+        p = sweep_mod.parse_state_block(self._base_block())
+        findings = sweep_mod.validate(p, conn)
+        self.assertTrue(any(f["code"] == "BASE_MISMATCH"
+                            and f["level"] == "flag"
+                            for f in findings))
+        self.assertEqual([f for f in findings
+                          if f["level"] == "error"], [])
+        conn.close()
+
+    def test_absent_base_is_not_flagged(self):
+        # Older blocks (ChatGPT Turns 132/133) never carried Base;
+        # they keep working with no flag.
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        db.set_meta(conn, "last_swept_turn", 133)
+        db.set_meta(conn, "last_swept_version", "ForkA-vFINAL.2")
+        p = sweep_mod.parse_state_block(_fork_block())
+        self.assertIsNone(p.get("base_version"))
+        findings = sweep_mod.validate(p, conn)
+        self.assertFalse(any(f["code"] == "BASE_MISMATCH"
+                             for f in findings))
+        conn.close()
+
+    def test_summarize_shows_carried_base(self):
+        conn, _ = fresh_fork_db(os.path.join(tempfile.mkdtemp(),
+                                             "fork.sqlite"))
+        p = sweep_mod.parse_state_block(self._base_block())
+        review = sweep_mod.summarize(
+            p, sweep_mod.validate(p, conn), sweep_mod.diff(p, conn),
+            conn=conn)
+        self.assertIn("Base (carried): ForkA-vFINAL.3", review)
         conn.close()
 
 

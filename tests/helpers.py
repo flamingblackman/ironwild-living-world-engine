@@ -20,6 +20,7 @@ ENGINE_DIR = os.path.dirname(BASE)
 FIXTURE_PATH = os.path.join(BASE, "fixture_seed.json")
 LORE_SEED_PATH = os.path.join(ENGINE_DIR, "seed", "fork-a.json")
 INTERNAL_SEED_PATH = os.path.join(ENGINE_DIR, "seed", "fork-a.internal.json")
+INTERNAL_SEED_G_PATH = os.path.join(ENGINE_DIR, "seed", "fork-g.internal.json")
 
 CANON_FILES = [
     os.path.join(ENGINE_DIR, "..", "universe-1-ironwild.md"),
@@ -46,6 +47,12 @@ def fresh_fixture_db(tmp_path):
 
 def fresh_fork_db(tmp_path):
     return fresh_db(tmp_path, INTERNAL_SEED_PATH)
+
+
+def fresh_fork_g_db(tmp_path):
+    """Fork G: Fork A v1.6 re-seeded under world_id ironwild-fork-g,
+    for the Gemini DM test. Same tick-0 state, separate ledger."""
+    return fresh_db(tmp_path, INTERNAL_SEED_G_PATH)
 
 
 def load_lore_seed():

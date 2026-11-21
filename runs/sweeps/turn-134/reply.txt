@@ -1,0 +1,99 @@
+IRONWILD · FORK A · TURN 134
+
+The Beacon's Shield
+
+Great Basin — Legion Engineering Grounds
+
+The foundries glow against the morning darkness. Hammer blows echo through the engineering district, while patrol horns sound from the newly fortified walls.
+
+Inside the workshop, Vance and Tull stand over the engineers' competing designs.
+
+The King's decision settles the debate.
+
+An elite rapid-response force. Not an assault force.
+
+The mission is to protect settlements, caravans, and wounded Engines.
+
+Vance takes the assault formation drawings and pushes them aside.
+
+"Then we're building something different. Fighters who get there before the fighting becomes a massacre."
+
+Tull nods.
+
+"People on the road shouldn't have to wait for the entire Legion to mobilize. Neither should a wounded Engine."
+
+Queen Kaelen examines the plans.
+
+"And the city cannot be left undermanned to accomplish this. We have six hundred soldiers, not six thousand."
+
+The proposed unit doctrine
+
+The engineers begin drafting a three-part operational structure.
+
+1. Road Response
+
+Reach threatened caravans, escort traveling families, and secure dangerous stretches of road until help arrives.
+
+2. Settlement Defense
+
+Reinforce vulnerable settlements, respond to raids, and protect civilians during evacuations.
+
+3. Engine Recovery Protection
+
+Establish defensive perimeters around wounded Feral Engines, protect their recovery, and hold attackers back until their Pack can respond.
+
+The first engineering decision
+
+Vance proposes selecting experienced volunteers from the existing Legion rather than expanding beyond its six hundred members.
+
+Tull wants candidates who have demonstrated discipline under pressure, understand how Feral Engines behave, and can operate without depending on the Pack to rescue them.
+
+Kaelen adds one condition:
+
+"Ordinary patrols must remain staffed. We aren't sacrificing the kingdom's security to create another military formation."
+
+The engineers begin preparing selection criteria and an equipment requirements document.
+
+There is no grand new army marching out of the foundry today.
+
+There is something more important: a clear purpose for the force.
+
+A shield that moves. A force that arrives. A kingdom that protects its own.
+
+The engineers await the next stage of authorization before selecting personnel or spending salvage.
+
+MECHANICAL BOUNDARY
+
+The Fork A seed has no recruitment, training, or unit-formation action. The Engine cannot invent one. This turn therefore establishes the proposed doctrine, not an operational unit. No personnel, equipment, resources, Bonds, or clocks are mechanically changed.
+
+fork-a.json
+phase-1-plan.md
+
+Three-turn acceptance checkpoint
+Turn 134 checkpoint recorded
+
+Test | Result
+State-block schema | Pass
+Version sequencing | Pass
+Bond and Engine continuity | Pass
+Clock tracking | Pass
+No unapproved Engine changes | Pass
+No live-canon contamination | Pass
+
+Recorded discrepancy: The initial Turn 132 proposal showed Great Basin Recovery at 1/6. The subsequent authoritative Engine handshake established 6/6 (Complete). The initial proposal was superseded and never committed. This is recorded as a proposal mismatch, not an applied state change.
+
+Checkpoint complete. The next turn waits for the next player action.
+
+[TURN STATE]
+
+Universe: Ironwild | State-Version: ForkA-vFINAL.3 | Turn: 134
+
+Clocks: Concord Blockade 0/6; Dust-Baron Retaliation 0/6; Great Basin Recovery 6/6 (Complete); Legion Cohesion 0/6
+
+Scene: Great Basin — Legion Engineering Grounds | SCENE_TENSION: Low | ACTIVE_TRADE_OFF: Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.
+
+Player character: Brigus, Seedborn, King of the Great Basin, Beacon. Wounds: None. Status: exhausted after the Feral God merge, victorious, directing reconstruction and has chosen development of an elite rapid-response force to protect settlements, caravans, and wounded Engines. Five Engines: Gold Sledge, black-and-gold gorilla Bulwark, Bond 4/5, exhausted and battered, Titanium-Cestus (Diamond-Claw melted Turn 126), neural Sentient Seat (not a saddle-harness); Skytalon, ADULT Shadow-Owl, Bond 5/5, exhausted and battered, sleek radar-absorbent silent chassis, echolocation, mono-molecular feather-blades, adult Molt Turn 129, no longer juvenile or hard-light winged; Razor-Back, Bond 3/5, field-patched, previously exhausted and battered following Turn 128 Pack Merge; Goliath Dreadnought, Bond 5/5, field-patched, pre-war machine, left mortar pod destroyed Turn 112; Surveyor-Strider, Bond 5/5, exhausted and battered, observation and fire-control platform. Pack: Vance, Tull, Queen Kaelen, Nest-Keeper. Vance, Tull, and Kaelen in Great Basin; Nest-Keeper in Chalk Canyons. Faction: Ironwild Legion, 600 strong, including absorbed Dust-Baron mercenaries. Great Basin fortified. Elite rapid-response force selected as the development objective; doctrine drafted, personnel not yet selected, equipment not yet manufactured. All Engine Bonds unchanged.
+
+Unresolved Decisions: none
+
+[/TURN STATE]

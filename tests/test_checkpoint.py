@@ -75,6 +75,54 @@ class TestCheckpoint(unittest.TestCase):
             self.assertTrue(ok)
             copy.close()
 
+    def test_pending_decision_comes_from_latest_turn(self):
+        # A null pending decision in the latest turn means the
+        # decision was answered (Turn 134), not missing: the audit
+        # must say "none", not fall back to an older answered
+        # question (Turn 133's elite-force decision).
+        with tempfile.TemporaryDirectory() as tmp:
+            db_path = os.path.join(tmp, "fork.sqlite")
+            conn, _ = fresh_fork_db(db_path)
+            flag = os.path.join(tmp, "session.json")
+            pc = ("Brigus, Seedborn / King of the Great Basin. "
+                  "Wounds: None. Engines: Gold Sledge, Bulwark, "
+                  "Bond 4/5; Skytalon, Bond 5/5; Razor-Back, Bond 3/5; "
+                  "Goliath Dreadnought, Bond 5/5; Surveyor-Strider, "
+                  "Bond 5/5. Pack: Vance, Tull, Kaelen, Nest-Keeper.")
+            block1 = ("[TURN STATE]\n"
+                      "Universe: Ironwild | State-Version: ForkA-vFINAL.1 "
+                      "| Turn: 132\n"
+                      "Clocks: Dust-Baron Retaliation 2/6\n"
+                      "Scene: Great Basin | SCENE_TENSION: Low | "
+                      "ACTIVE_TRADE_OFF: none\n"
+                      "Player character: %s\n"
+                      "Unresolved Decisions: \"What kind of elite force "
+                      "should the engineers develop?\"\n"
+                      "[/TURN STATE]\n" % pc)
+            parsed1 = sweep_mod.parse_state_block(block1)
+            result1 = sweep_mod.apply_sweep(parsed1, conn,
+                                            approved_by="Bryan",
+                                            flag_path=flag)
+            conn.commit()
+            carried1 = os.path.join(tmp, "carried-132.json")
+            with open(carried1, "w") as f:
+                json.dump(result1["carried"], f)
+            block2 = _fork_block(turn=133, version="ForkA-vFINAL.2")
+            parsed2 = sweep_mod.parse_state_block(block2)
+            result2 = sweep_mod.apply_sweep(parsed2, conn,
+                                            approved_by="Bryan",
+                                            flag_path=flag)
+            conn.commit()
+            carried2 = os.path.join(tmp, "carried-133.json")
+            with open(carried2, "w") as f:
+                json.dump(result2["carried"], f)
+            conn.close()
+            out = os.path.join(tmp, "checkpoint")
+            text, drift = checkpoint_mod.audit(db_path,
+                                               [carried1, carried2], out)
+            self.assertIn("Pending decision (verbatim): none", text)
+            self.assertNotIn("What kind of elite force", text)
+
     def test_acceptance_fails_on_tampered_events(self):
         with tempfile.TemporaryDirectory() as tmp:
             db_path = os.path.join(tmp, "fork.sqlite")

@@ -1,0 +1,50 @@
+{
+  "prop-135-6f315dfe": {
+    "changes": [],
+    "content_hash": "6f315dfeafdbf75a440d073bc7c2791bbca144b98aac0f404aeccd7ab16fb674",
+    "drive_file_id": "1fgoq0N2tQrH76OeBilB7I51FI7gcUdZa",
+    "drive_file_name": "turn-135-scene.txt",
+    "findings": [],
+    "proposal_id": "prop-135-6f315dfe",
+    "review": "Sweep review \u2014 Turn 135 ForkA-vFINAL.4\nBased on: Turn 135 ForkA-vFINAL.4 | Last approved: Turn 134 ForkA-vFINAL.3\nBase (carried): ForkA-vFINAL.3 \u2014 the version this proposal was built on.\nScene: Great Basin \u2014 Legion Reconstruction Council | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
+    "state_version": "ForkA-vFINAL.4",
+    "status": "reviewed",
+    "turn": 135
+  },
+  "prop-135-98e7fdc3": {
+    "applied_at": "2026-11-21T14:42:16.585899+00:00",
+    "auto_applied": true,
+    "auto_apply_approval": "Bryan standing 0-change auto-apply approval, 2026-11-21 09:30 EST",
+    "changes": [],
+    "content_hash": "98e7fdc38edba951e9f4d63691da37b6a35e9e39c3c933aa0def59e69bf05c25",
+    "drive_file_id": "1OZRNn9EYDIALwdDmTSpN08REm_PNd0sr",
+    "drive_file_name": "turn-135-clean.txt",
+    "findings": [],
+    "proposal_id": "prop-135-98e7fdc3",
+    "review": "Sweep review \u2014 Turn 135 ForkA-vFINAL.4\nBased on: Turn 135 ForkA-vFINAL.4 | Last approved: Turn 134 ForkA-vFINAL.3\nBase (carried): ForkA-vFINAL.3 \u2014 the version this proposal was built on.\nScene: Great Basin \u2014 Legion Engineering Grounds | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges: none \u2014 the block matches the DB.\nFindings: none.",
+    "state_version": "ForkA-vFINAL.4",
+    "status": "applied",
+    "turn": 135
+  },
+  "prop-135-da835f34": {
+    "changes": [
+      {
+        "id": "concord_blockade",
+        "kind": "clock",
+        "max": 6,
+        "name": "Concord Blockade",
+        "new": 1,
+        "old": 0
+      }
+    ],
+    "content_hash": "da835f34df73368046d8477f33ab342e5fbb75a2ff743496ec8efc54bdcd738b",
+    "drive_file_id": "1aSjcaezjCg_dzQ7FFAMqKUulZ5yHBy-R",
+    "drive_file_name": "turn-135-clock.txt",
+    "findings": [],
+    "proposal_id": "prop-135-da835f34",
+    "review": "Sweep review \u2014 Turn 135 ForkA-vFINAL.4\nBased on: Turn 135 ForkA-vFINAL.4 | Last approved: Turn 134 ForkA-vFINAL.3\nBase (carried): ForkA-vFINAL.3 \u2014 the version this proposal was built on.\nScene: Great Basin \u2014 Legion Engineering Grounds | tension Low\nTrade-off (carried): Developing an elite combat unit may divert engineers, salvage, and labor from civilian welfare and Engine recovery.\nChanges (1):\n  clock concord_blockade: 0 -> 1 (max 6)\nFindings: none.",
+    "state_version": "ForkA-vFINAL.4",
+    "status": "reviewed",
+    "turn": 135
+  }
+}

@@ -39,7 +39,7 @@ FROZEN_VERSION = "vFINAL.5"
 SCENE_TENSIONS = {"Low", "Rising", "Snap-Point", "Catastrophic"}
 
 FIELD_LABELS = [
-    "Universe", "State-Version", "Turn", "Clocks", "Scene",
+    "Universe", "State-Version", "Base", "Turn", "Clocks", "Scene",
     "SCENE_TENSION", "ACTIVE_TRADE_OFF", "Player character",
     "Unresolved Decisions",
 ]
@@ -217,6 +217,13 @@ def parse_state_block(text):
     return {
         "universe": fields.get("Universe", "").strip(),
         "state_version": fields.get("State-Version", "").strip(),
+        # Base: the state version the proposal was built on (the
+        # Gemini Skill adds this line). Absent in older blocks
+        # (ChatGPT Turns 132/133) — those keep working, Base is
+        # simply None. Before this field existed, a Base line
+        # polluted State-Version ("ForkA-vFINAL.4 | Base:
+        # ForkA-vFINAL.3") and the intake rejected the block.
+        "base_version": fields.get("Base", "").strip() or None,
         "turn": turn,
         "clocks_raw": fields.get("Clocks", "").strip(),
         "clocks": clocks,
@@ -278,6 +285,23 @@ def validate(parsed, conn):
             "level": "error", "code": "FROZEN_LIVE",
             "message": "Turn 136 vFINAL.5 is the frozen live state; "
                        "it never enters Fork A."})
+    # Base: the version the proposal was built on. A mismatch with
+    # the last approved (swept) version is a FLAG, not an error —
+    # whether Base must equal last_swept_version or the last
+    # generated handshake's version is still an open design question
+    # (Fork A continuation vs Fork G), and a flag keeps the review
+    # honest without blocking a good proposal. Absent Base (older
+    # blocks) is not flagged: the ChatGPT blocks never carried it.
+    last_swept_version = db.get_meta(conn, "last_swept_version")
+    if (parsed.get("base_version") and last_swept_version
+            and parsed["base_version"] != last_swept_version):
+        findings.append({
+            "level": "flag", "code": "BASE_MISMATCH",
+            "message": "block says it is based on %s, but the last "
+                       "approved version is %s; the DM may be working "
+                       "from a newer handshake than the last sweep — "
+                       "Bryan decides whether that is the right base."
+                       % (parsed["base_version"], last_swept_version)})
     if parsed["clocks"] is None:
         findings.append({
             "level": "flag", "code": "NO_CLOCKS_PARSED",
@@ -409,6 +433,9 @@ def summarize(parsed, findings, changes, conn=None):
             % (parsed["turn"], parsed["state_version"],
                db.get_meta(conn, "last_swept_turn") or "-",
                db.get_meta(conn, "last_swept_version") or "-"))
+    if parsed.get("base_version"):
+        lines.append("Base (carried): %s — the version this proposal "
+                     "was built on." % parsed["base_version"])
     lines.append("Scene: %s | tension %s"
                  % (parsed["scene"], parsed["scene_tension"] or "-"))
     if parsed.get("active_trade_off"):
@@ -446,7 +473,7 @@ def summarize(parsed, findings, changes, conn=None):
 
 
 def apply_sweep(parsed, conn, approved_by, flag_path=None,
-                resource_changes=None):
+                resource_changes=None, lore_approval=None):
     """Apply a validated block in one transaction.
 
     Raises SweepError when validation has errors, when the session
@@ -454,7 +481,11 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
     are explicitly approved resource moves (the V2 block has no
     Resources field); each is validated against the DB's current
     value and applied in the same transaction, one append-only event
-    per change. Returns the applied changes plus the carried state
+    per change. `lore_approval` is the Lore submission id when the
+    apply rests on Lore's verdict (a Lore-call proposal): the audit
+    trail then records the approver as Lore, not Bryan, so a
+    Lore-approved apply is distinguishable from a Bryan-approved
+    one. Returns the applied changes plus the carried state
     for the next handshake.
     """
     if not approved_by:
@@ -507,7 +538,12 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
         events.append_event(
             conn, tick, "sweep", "sweep", None, None,
             [{"op": "note",
-              "text": "sweep Turn %d %s: %d change(s), approved by %s"
+              "text": ("sweep Turn %d %s: %d change(s), Lore-approved "
+                       "(submission %s)"
+                       % (parsed["turn"], parsed["state_version"],
+                          len(changes), lore_approval))
+                      if lore_approval else
+                      "sweep Turn %d %s: %d change(s), approved by %s"
                       % (parsed["turn"], parsed["state_version"],
                          len(changes), approved_by)}])
         db.set_meta(conn, "last_swept_turn", parsed["turn"])
@@ -520,6 +556,7 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
     carried = {
         "turn": parsed["turn"],
         "state_version": parsed["state_version"],
+        "base_version": parsed.get("base_version"),
         "scene": parsed["scene"],
         "scene_tension": parsed["scene_tension"],
         "active_trade_off": parsed["active_trade_off"],
@@ -537,5 +574,9 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
         # Resources field).
         "resources": [c for c in changes if c["kind"] == "resource"],
     }
-    return {"applied": changes, "carried": carried,
-            "turn": parsed["turn"], "approved_by": approved_by}
+    result = {"applied": changes, "carried": carried,
+              "turn": parsed["turn"],
+              "approved_by": "Lore" if lore_approval else approved_by}
+    if lore_approval:
+        result["lore_approval"] = lore_approval
+    return result

@@ -335,6 +335,46 @@ and retrieves the approved handshake from the outbox, with no
 copy-paste. That needs the DM's instructions to include the Drive
 steps (a Lore/start-pack question, not an Engine build).
 
+**Lore's call (2026-11-21 ~10:26 EST): keep the Project
+instructions as they are; carry the Drive steps per turn message.**
+The instructions sit at 7,663/8,000 characters (337 headroom); a
+Drive block does not fit without trimming the spec, which Lore will
+not do (the spec was already trimmed once, 9,391 → 7,663, and the
+required elements — [TURN STATE] layout, narrative style 8 bullets,
+hard facts, player agency, strict isolation, propose-never-apply,
+rejection handling, checkpoint rule — must stay). The Drive steps are
+per-turn context anyway (the file names change every turn), the turn
+message carries them, and the Engine generates the turn message
+every turn, so it is not a manual step for Bryan. The durable home
+for the Drive steps is the turn message (Engine-generated, every
+turn) + the full spec in Project Sources if a standing Drive section
+is ever added there.
+
+**1B acceptance — Turn 135 no-paste test, PASS on the submit leg
+(2026-11-21 ~10:25–10:33 EST).** The DM read turn-135.md from the
+outbox via the plugin (did NOT use the older pasted handshake),
+played Turn 135 as a quiet day, and wrote turn-135.txt to the
+Proposals inbox itself — no paste from Bryan at any step. Engine
+verified independently: the file is in the inbox, and the chat block
+and the Drive file block are identical line-for-line (7 lines).
+Intake: prop-135-0e781bff, reviewed, 0 changes, 0 findings (narrative
+flag NEW_PC_FACT — a false positive in substance, per Lore: wording
++ a correctly-dropped false claim). Lore APPROVED (submission
+69d73a5f-ee6a-48b0-9a6f-3f5a654f6552). Applied with --lore-approval
+after the hub cleared the session flag: 0 changes, last_swept 135
+ForkA-vFINAL.4. Ticked 3 (tick 9 → 12, 138 events, invariants clean,
+hash chain OK). Turn 136 handshake generated + uploaded to the outbox
+(Drive file 1cP_GPBzePx0p-q_tcJTcaNyBQOZJ-5ZP, 597 words). Caveat: mid-
+reply the DM requested approval for a Google Drive trash_file call
+targeting a Google Doc (not part of the assignment); the browser task
+DENIED it, nothing was trashed, the target doc is unidentified (the
+reported URL is mangled, the reconstructed id returns 404), and the
+inbox/outbox are verified intact. The plugin's approval prompt is the
+backstop. The DM retrieving the Turn 136 handshake from the outbox
+happens on the next turn (Turn 136); the same read already worked for
+turn-135.md. Proof gate (three consecutive live turns through the
+pipeline): 1 of 3 done — Turn 135. Turns 136–137 to go.
+
 **Side note from the investigation:** the Project's Instructions
 cite "ironwild-mechanic-registry.md" under REGISTRY with no stated
 location or Drive link — a Lore item (the DM ruleset), not an
@@ -369,3 +409,201 @@ Engine action.
   file in the outbox (upload always creates; it never updates in
   place). A future improvement: check for an existing file by name
   and update it instead.
+
+## 9. 0-change auto-apply (Bryan, 2026-11-21 09:30 EST)
+
+Standing approval, the first limited standing permission under
+section 0: **0-change proposals auto-apply, tick, and drop the next
+handshake in the outbox. Everything else still comes to Bryan for
+approval.** Built 2026-11-21 ~09:30–09:45 EST. **Narrowed the same
+morning by Lore's canon guard (section 10): the auto-apply class is
+a pure carry-over, not just "sweep shows 0 changes."** No seed change.
+Fork A stays at v1.6. Freeze intact.
+
+### Exact criteria (all must hold)
+
+1. 0 changes — the sweep diff is empty (no clock, Bond, or
+   resource change; a block cannot change locations through the
+   sweep, so there is no location change to check).
+2. 0 findings — no error, no flag.
+3. Version sequencing correct — turn == last swept turn + 1, and
+   State-Version == the expected next `ForkA-vFINAL.<turn-131>`.
+4. Base matches — when the block carries a Base, it equals the last
+   approved version. Absent Base is permitted (ChatGPT's blocks
+   never carried it); the turn + version checks bind the proposal.
+5. Pending decision UNCHANGED — the block's decision == the DB's
+   decision, including both empty.
+6. Session flag closed.
+7. Pure carry-over (canon guard, section 10) — every block field
+   identical to the last approved block except the State-Version/
+   Turn increment: same Scene (location, tension, trade-off), same
+   PC line (Bond numbers and engine statuses are DB-driven and
+   masked in the comparison; anything else in the line must match),
+   same Unresolved Decisions. The block's engine statuses must
+   also match the DB (a status the sweep does not check must not
+   hide behind the mask).
+
+### The Turn 134 class: does NOT auto-apply
+
+Turn 134 was 0 mechanical changes but resolved a pending decision
+narratively (Unresolved Decisions went from the elite-force
+question to none). The sweep's diff does not track the pending
+decision (it lives in meta, not in clocks/Bonds/resources), so
+"0 changes" alone would let it through — but resolving a decision
+clears the auto-tick guard and is a state transition with
+consequences, and the resolution's narrative content deserves a
+human eye. So a resolved decision, a new decision, or a changed
+decision text all come to Bryan. A block that repeats the DB's
+pending decision verbatim is also held — validate flags any
+carried decision (PENDING_DECISION), so it fails criterion 2
+before the decision check is even reached.
+
+### Flow (wired into the intake poll)
+
+Intake every 15 min (`intake --auto-apply`) → for each NEW
+reviewed proposal, eligibility is re-checked fresh against the
+live DB (the intake-time review is stale the moment anything
+ticks) → if eligible, apply in one transaction through the
+binding-checked path (Drive file re-downloaded, hash verified),
+tick 3, generate the next handshake, upload it to the outbox,
+log the auto-apply with proposal ID + hash binding
+(`runs/proposals/<id>/auto-applied.json`), mark the registry entry
+`auto_applied`, and report one line to the hub (proposal ID, turn,
+tick range, handshake file). If not eligible, the proposal is
+HELD and its review goes to the hub for Bryan's approval, as
+before. The Fork G poll is NOT auto-apply — it stays review-only.
+
+### Failure behavior
+
+The eligibility, fork, hash, and session checks all run before
+the first write. Once the apply commits, a later failure (tick
+halt, invariant problem, hash-chain problem, handshake upload
+failure) leaves the apply standing and the record says so loudly
+— no handshake is generated from a halted or suspect state, and
+the failure goes to the hub. Nothing is silently retried.
+
+### Test + acceptance
+
+- `src/auto_apply.py` (`check_eligible`) + `src/run.py`
+  (`attempt_auto_apply`, `intake --auto-apply --outbox`). Suite:
+  129 tests (10 new in `tests/test_auto_apply.py`, incl. the
+  Turn 134-class test and a refusal test that proves a held
+  proposal leaves the DB untouched).
+- Acceptance (record `runs/acceptance-auto-apply/acceptance.json`,
+  scratch DB, env-scoped dirs, dedicated Drive test folders,
+  trashed after): synthetic clean Turn 135 (0 changes, Base
+  ForkA-vFINAL.3) AUTO-APPLIED — tick 9 → 12, 138 events, hash
+  chain OK, handshake Turn 136 (ForkA-vFINAL.5 — the FORK's Turn
+  136, not the frozen live Turn 136 vFINAL.5) in the test outbox;
+  synthetic Turn 135 with a Concord Blockade 0 → 1 change HELD
+  ("has 1 change(s)"). Live DB, live inbox, and live outbox
+  untouched (tick 9, 104 events, last_swept 134 ForkA-vFINAL.3).
+- Intake poll cron `ironwild-fork-a-proposal-intake` body updated
+  to the auto-apply flow; same 15-min schedule, still ENABLED.
+
+## 10. Canon guard for auto-apply (Lore, 2026-11-21)
+
+Full text: `lore-auto-apply-guard.md`. The guard narrows section
+9: "0-change" in the sweep sense is not enough, because a 0-change
+block can carry narrative changes the sweep cannot validate (Turn
+134 was 0-change AND resolved a pending decision, recorded a new
+intent in the PC line, and carried a trade-off).
+
+### The three classes
+
+- **AUTO-APPLY** (no Lore call, no Bryan approval): sweep shows
+  changes [] and findings [], AND the block is a pure carry-over
+  (section 9, criterion 7). The DM echoed the state and advanced
+  the story without changing any recorded fact.
+- **LORE CALL** (does NOT auto-apply; Lore decides APPROVE vs
+  ESCALATE to Bryan): a 0-change proposal where any of these hold:
+  (a) pending decision resolved or introduced; (b) scene change
+  (location, tension, trade-off); (c) new PC fact (a new choice,
+  intent, condition, rumor, or callback in the Player character
+  field); (d) new rumor or callback in the DM's reply narrative;
+  (e) any other narrative addition the sweep cannot validate.
+  Lore reviews the field diff and the full reply, then returns
+  APPROVE (apply it) or ESCALATE (to Bryan).
+- **BRYAN** (never auto-applies): any proposal with changes
+  non-empty; any proposal with findings non-empty; any proposal
+  Lore flags as drift; any unresolved disagreement; any proposal
+  that touches a sealed mystery, Turn 136 content, a resurrection,
+  or a new mechanic; any proposal where the DM narrated Brigus
+  making a choice Bryan did not make.
+
+### Engine implementation
+
+- `src/auto_apply.py: flag_narrative_changes` compares the block
+  against the last approved block's carried record
+  (`runs/sweeps/turn-<n>/carried.json`) and flags (a) PENDING_
+  DECISION, (b) SCENE_CHANGE, (c) NEW_PC_FACT, plus
+  STATUS_MISMATCH (a block status contradicting the DB — a
+  mechanical drift the sweep does not check) and NO_BASELINE (no
+  prior carried record to compare against). The PC comparison
+  masks Bond numbers and engine statuses (both move through
+  ticks), then verifies the block's statuses against the DB so a
+  wrong status cannot hide behind the mask.
+- Routing in `src/run.py: attempt_auto_apply`: pure carry-over →
+  auto-apply; a 0-change proposal with narrative flags and no other
+  blocker → `LoreCall` (the intake prints a LORE-CALL line with
+  the flag codes, details, and the block file path; the poll worker
+  sends the field diff + block to Lore); anything else → HELD for
+  Bryan.
+- A flagged proposal Lore approves is applied through the normal
+  path with `--lore-approval <submission-id>` and recorded as
+  Lore-approved (`runs/proposals/<id>/lore-approved.json` + the
+  registry mark), not as a pure auto-apply.
+- Coverage limit, stated plainly: (d) and (e) cannot be checked
+  from the block file — the Drive inbox carries only the V2 block,
+  not the reply narrative. They are covered two other ways: the
+  handshake generator emits rumors only from logged events (an
+  invented narrative rumor never enters the next handshake), and
+  Lore's post-apply audit of the first auto-applied turn plus the
+  formal 3-turn checkpoint cover the narrative.
+
+### Lore's post-apply audit
+
+Lore verifies the first auto-applied turn after it lands (flag any
+drift). After that, the formal 3-turn checkpoint covers
+auto-applied turns. If drift is found post-apply, Lore flags it to
+the hub and the Engine rolls back or Bryan decides.
+
+### Test + acceptance
+
+- Suite: 139 tests (10 new in `tests/test_auto_apply.py` for the
+  flag comparison and the Lore-call routing, incl. a Bond-only PC
+  change that is NOT flagged and a status mismatch that IS).
+- Guard acceptance (record
+  `runs/acceptance-guard/acceptance.json`, fresh scratch DB,
+  env-scoped dirs, dedicated Drive test folders, trashed after):
+  synthetic Turn 135 with a scene change → LORE-CALL
+  (SCENE_CHANGE, not applied); synthetic Turn 135 with a Concord
+  Blockade 0 → 1 change → HELD for Bryan; synthetic pure
+  carry-over Turn 135 → AUTO-APPLIED (tick 9 → 12, 138 events,
+  hash chain OK, handshake Turn 136 ForkA-vFINAL.5 in the test
+  outbox). Live DB, live inbox, and live outbox untouched.
+
+## 11. Scheduler guard — cadence decided (Bryan, 2026-11-21 13:22 EST)
+
+Bryan DECIDED: **"Tick only when I play, 3 days per turn, like
+now."** That answers the scheduler design's questions 3 and 4
+together (design doc `scheduler-guard-design.md`, all four
+questions now answered):
+
+- Tick cadence is play-time only: the scheduler runs as part of a
+  played turn — 3 ticks per played turn under the DF Adventure
+  Mode guard (scheduler mode when a decision is pending, full
+  otherwise).
+- No daily auto-tick. The daily auto-tick cron
+  (`ironwild-fork-a-daily-tick`) stays DISABLED.
+- No catch-up for days missed.
+
+Consequences recorded in the design doc: the `run_auto_tick`
+mode-switch is superseded (it keeps its pending-decision refusal
+as written, since it never runs on a schedule); the scheduler mode
+is driven by the played-turn tick, not by auto_tick. The guard
+itself (Lore's DF guard, `lore-df-adventure-guard.md`) is
+unchanged — frozen items protected, skips logged, no override.
+
+**The design as now decided waits on Bryan's approval to build.**
+No seed change. Fork A stays at v1.6. Freeze intact.

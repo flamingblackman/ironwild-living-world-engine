@@ -42,9 +42,15 @@ _FIXED_ACTIONS = {"complete", "legacy", "sweep_clock", "sweep_bond",
 # Frozen live terms (Turn 136 sequel). No event's effects may mention
 # them; a hit is a continuity failure. Matched on the normalized
 # (lowercase, alphanumerics only) JSON of the event effects.
+# The live label is matched as one contiguous term ("turn136vfinal5"):
+# the Fork A test Turn 136 legitimately carries "Turn 136
+# ForkA-vFINAL.5", which contains "turn136" and "vfinal5" as separate
+# substrings and false-positived the scan (event 139, the Turn 136
+# sweep note). The contiguous live label "Turn 136 vFINAL.5" normalizes
+# to "turn136vfinal5", which the Fork A label does not contain.
 _FROZEN_TERMS = {"krov", "motherbulwark", "riderarmy",
                  "sanctuaryintegration", "outersiegering",
-                 "northernpass", "turn136", "vfinal5",
+                 "northernpass", "turn136vfinal5",
                  "crownofcoldiron"}
 
 
@@ -395,11 +401,12 @@ def audit(db_path, carried_paths, out_dir, sweeps_dir=None, seed_path=None):
     lines.append("Locations (current controllers):")
     for loc_id, controller in locations:
         lines.append("  %s: %s" % (loc_id, controller or "uncontrolled"))
-    pending = None
-    for carried in reversed(carried_list):
-        if carried.get("pending_decision"):
-            pending = carried["pending_decision"]
-            break
+    # The pending decision is the latest turn's: a null there means
+    # the decision was answered (Turn 134), not missing. Falling back
+    # to an older answered decision would show a resolved question as
+    # still pending.
+    pending = (carried_list[-1].get("pending_decision")
+               if carried_list else None)
     lines.append("")
     lines.append("Pending decision (verbatim): %s" % (pending or "none"))
     lines.append("")

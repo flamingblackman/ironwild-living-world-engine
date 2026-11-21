@@ -1,0 +1,10 @@
+{
+  "acceptance": "PASS",
+  "acceptance_failures": 0,
+  "drift": 0,
+  "events": 71,
+  "pending_decision": null,
+  "state_hash": "4755a9f233ebb032c77228a21111e1131defb2247921956a1f2e579957b23f25",
+  "tick": 6,
+  "turn": 134
+}

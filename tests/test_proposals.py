@@ -19,7 +19,7 @@ from unittest import mock
 
 from src import proposals as proposals_mod
 from src import sweep as sweep_mod
-from tests.helpers import fresh_fork_db
+from tests.helpers import fresh_fork_db, fresh_fork_g_db
 
 _PC = ("Brigus, Seedborn / King of the Great Basin. Wounds: None. "
        "Engines: Gold Sledge, Bulwark, Bond 3/5; Skytalon, Bond 5/5; "
@@ -164,6 +164,37 @@ class TestProposalPipeline(unittest.TestCase):
                 proposals_mod.apply_proposal(
                     entry["proposal_id"], self.conn, "Bryan")
 
+    def test_apply_with_lore_approval_labels_the_apply_as_lore(self):
+        entry = self._reviewed()
+        with mock.patch(
+                "src.drive_io.download_text",
+                return_value=_fork_block()):
+            result = proposals_mod.apply_proposal(
+                entry["proposal_id"], self.conn, "Bryan",
+                lore_approval="lore-sub-1")
+        self.assertEqual(result["proposal_binding"]["approved_by"],
+                         "Lore")
+        self.assertEqual(result["proposal_binding"]["lore_approval"],
+                         "lore-sub-1")
+        self.assertEqual(result["approved_by"], "Lore")
+        note = self.conn.execute(
+            "SELECT effect FROM events WHERE action = 'sweep' "
+            "ORDER BY id DESC LIMIT 1").fetchone()[0]
+        self.assertIn("Lore-approved (submission lore-sub-1)", note)
+
+    def test_apply_with_lore_approval_still_needs_bryan(self):
+        # The lore-approval path does not bypass the Bryan guard:
+        # the command authorization is still Bryan's standing
+        # approval; only the recorded verdict source is Lore's.
+        entry = self._reviewed()
+        with mock.patch(
+                "src.drive_io.download_text",
+                return_value=_fork_block()):
+            with self.assertRaises(sweep_mod.SweepError):
+                proposals_mod.apply_proposal(
+                    entry["proposal_id"], self.conn, "Case",
+                    lore_approval="lore-sub-1")
+
     def test_apply_refuses_tampered_file(self):
         entry = self._reviewed()
         tampered = _fork_block().replace("1/6", "2/6")
@@ -230,6 +261,76 @@ class TestProposalPipeline(unittest.TestCase):
             self.conn.execute(
                 "SELECT value FROM clocks "
                 "WHERE id='dust_baron_retaliation'").fetchone()[0], 1)
+
+
+class TestForkG(unittest.TestCase):
+    """Fork G (Gemini DM test): same seed content as Fork A, separate
+    ledger. The intake's fork check follows the DB's world_id, so the
+    two forks never accept each other's blocks."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.conn_g, _ = fresh_fork_g_db(
+            os.path.join(self.tmp, "fork-g.sqlite"))
+        self.conn_a, _ = fresh_fork_db(
+            os.path.join(self.tmp, "fork-a.sqlite"))
+        self._orig_dir = proposals_mod.PROPOSALS_DIR
+        self._orig_reg = proposals_mod.REGISTRY_PATH
+        proposals_mod.PROPOSALS_DIR = os.path.join(self.tmp, "proposals")
+        proposals_mod.REGISTRY_PATH = os.path.join(
+            self.tmp, "proposals", "registry.json")
+
+    def tearDown(self):
+        proposals_mod.PROPOSALS_DIR = self._orig_dir
+        proposals_mod.REGISTRY_PATH = self._orig_reg
+        self.conn_g.close()
+        self.conn_a.close()
+
+    def test_fork_g_versions_accepted_on_fork_g(self):
+        for version in ("ForkG-vFINAL", "ForkG-vFINAL.1", "ForkG-vFINAL.2"):
+            p = sweep_mod.parse_state_block(
+                _fork_block(version=version))
+            self.assertEqual(
+                proposals_mod.validate_fork(p, "ironwild-fork-g"), [],
+                version)
+
+    def test_fork_a_versions_rejected_on_fork_g(self):
+        for version in ("ForkA-vFINAL", "ForkA-vFINAL.1", "vFINAL.5"):
+            p = sweep_mod.parse_state_block(
+                _fork_block(version=version))
+            findings = proposals_mod.validate_fork(
+                p, "ironwild-fork-g")
+            self.assertTrue(
+                any(f["code"] == "NOT_FORK_A" and f["level"] == "error"
+                    for f in findings), version)
+
+    def test_intake_accepts_fork_g_block_on_fork_g_db(self):
+        entry = proposals_mod.intake_file(
+            "drive-file-g", "turn-132-proposal.txt",
+            _fork_block(turn=132, version="ForkG-vFINAL.1"),
+            self.conn_g)
+        self.assertEqual(entry["status"], "reviewed")
+        self.assertEqual(entry["turn"], 132)
+
+    def test_intake_rejects_fork_a_block_on_fork_g_db(self):
+        entry = proposals_mod.intake_file(
+            "drive-file-a", "turn-132-proposal.txt",
+            _fork_block(turn=132, version="ForkA-vFINAL.1"),
+            self.conn_g)
+        self.assertEqual(entry["status"], "rejected")
+        self.assertTrue(
+            any(f["code"] == "NOT_FORK_A"
+                for f in entry.get("findings", [])))
+
+    def test_intake_rejects_fork_g_block_on_fork_a_db(self):
+        entry = proposals_mod.intake_file(
+            "drive-file-g", "turn-132-proposal.txt",
+            _fork_block(turn=132, version="ForkG-vFINAL.1"),
+            self.conn_a)
+        self.assertEqual(entry["status"], "rejected")
+        self.assertTrue(
+            any(f["code"] == "NOT_FORK_A"
+                for f in entry.get("findings", [])))
 
 
 if __name__ == "__main__":
