@@ -1,0 +1,76 @@
+# Seed Package Manifest — Ironwild Fork A
+
+**Fork label:** Ironwild Fork A — The Beacon Year
+**World ID:** ironwild-fork-a
+**Seed file:** `seed/fork-a.json` (seed version 1.5; v1.4 was Bond recovery through Dream Share, v1.5 is the combined Dream Share fix, see changelog below)
+**Supplied by:** Ironwild Lore Team
+**Date:** 2026-11-20
+**Approved by:** Bryan, 2026-11-20 23:07 EST (Engine Phase 1 approved as written; all five open questions answered YES: tick 1 day, seed Turn 131 vFINAL, era 365 ticks, about 12 actors, static HTML world view acceptable for Phase 1)
+
+## Source snapshot
+
+Ironwild Turn 131 vFINAL (v3.00.2), CAMPAIGN COMPLETE, from Gemini chat `1f748777a35b76fd` ("Ironwild!"), verified in the 2026-10-29 wrap sweep (`rpg-pipeline/archives/ironwild/2026-10-29-wrap-sweep-turns126-131-final.md`).
+
+**Freeze:** No Turn 136 / Crown of Cold Iron data enters this fork. No Krov ambush decision, no sequel clocks, no sequel state. The fork starts from Turn 131 vFINAL only. The plan's `test_freeze.py` must fail if any Turn 136 data is present in the seed or the DB. The excluded sequel items are listed in the seed under `clocks_excluded_from_fork`.
+
+**Note on the freeze test:** the seed intentionally NAMES the excluded items (in `meta.freeze`, in `clocks_excluded_from_fork`, and in drift rules DC-03/DC-04) so the Engine Team can see exactly what is kept out. The freeze test must therefore check state, not strings: it passes if the `meta.source_snapshot` is Turn 131 vFINAL, the clocks table holds only the four fork clocks, and no sequel actor, location, or clock ID appears in any state table. A raw string search for "136" or "Krov" will hit the freeze declaration and the exclusion list on purpose, and that is not a failure.
+
+## Canon sources used
+
+- `giant-robot-multiverse/universe-1-ironwild.md` (master bible, 361 lines, incl. the 16-entry registry appendix)
+- `giant-robot-multiverse/combat-codex-ironwild-hunt-warfare.md` (Hunt Warfare, four beats)
+- `giant-robot-multiverse/mechanic-registry/registry-ironwild.md` (16 entries IW-42 to IW-85; only IW-42 on the dormant watchlist, IW-46 and IW-84 resolved in the final arc)
+- `rpg-pipeline/clocks/ironwild.md` (original campaign ledger, Turns 1-131, drift flags, meanwhile interludes)
+- `rpg-pipeline/briefs/ironwild-latest.md` (vFINAL summary)
+- `rpg-pipeline/briefs/ironwild-sequel-handshake-2026-10-29.md` (vFINAL baseline; used for the snapshot only, never for sequel state)
+- `rpg-pipeline/archives/ironwild/2026-10-29-wrap-sweep-turns126-131-final.md` (Turns 126-131 + vFINAL)
+
+## The eight items (plan section 9)
+
+1. **Frozen snapshot** — `snapshot` in the JSON: Turn 131 vFINAL, the Pack roster (5 Engines with Bonds 3/5/3/5/5), the Pack NPCs, the Ironwild Legion (600 strong), clocks resolved at vFINAL, and the five carried drift flags.
+2. **Actor shortlist** — 10 actors (within the ~12 max): Brigus, Vance, Tull, Queen Kaelen, Nest-Keeper, Caravan Master (Concord), High Baron, Dust-Baron Captain, Breaker Poacher Chief, Legion Captain. Each has a goal and capabilities. The Rust Choir is a faction only, background pressure, no actor row, because their goal is not established in canon.
+3. **Action catalog** — 18 actions, each with trigger and material effect: hunt, feed_engine, repair_engine, scout_wreck, trade, raid, net_ambush, pack_merge, dream_share, fortify, patrol, tend_den, bargain, evacuate, rest, plus forage, scavenge, claim (v1.3, fork-supplied, quiet-world fix). v1.5 changes two actions: hunt Feed now goes to the Pack, not the actor's holder; Dream Share is a scored action, not a rest hook.
+4. **Clock definitions** — 4 fork clocks (Dust-Baron Retaliation, Concord Blockade, Legion Cohesion, Great Basin Recovery), each 0/6 running, with trigger and exact completion effect. 13 clocks are explicitly excluded, with reasons.
+5. **Resource definitions and starting quantities** — Salvage, Feed, Cores (dormant Seed Cores), Territory, defined in `resource_definitions`, with starting quantities per holder.
+6. **Era and legacy rules** — Era 1 "The Beacon Year", ticks 0-364; 5 legacy rules (aging, Molt on earned triggers, succession, dormant Cores confirmed, era applied once).
+7. **Drift-check rules** — 19 rules (DC-01 to DC-19), each mapped to the plan's test file. DC-16 is the core-identity rule (Zoids mixed with Gaogaigar, no drift into generic mecha), added in v1.1. DC-17 is the quiet-world-fix guard (forage/scavenge/claim are fork-supplied only, no canon added, no Bond restored, claim never takes a controlled location), added in v1.3. DC-18 is the Bond-recovery guard (recovery only through Dream Share, +1 to one Engine, 2 Feed cost, never above 5; Seedborns stay extremely rare, Brigus the only one in the fork), added in v1.4. DC-19 is the combined-fix guard (hunt Feed goes to the Pack; Dream Share is a scored action; Bond branch rules unchanged), added in v1.5.
+8. **Fork label** — "Ironwild Fork A — The Beacon Year", on every output.
+
+## Fork assumptions (in the JSON, `fork_assumptions`)
+
+Everything Lore supplied for the fork rather than reading directly from Turns 1-131 is listed there: starting resource quantities, starting Hunger values, four Hunger types, the two fork clocks, the High Baron's bargain chain, the four role labels, the null pilot assignments beyond Brigus-Sledge, the shared Engine pool for actions, the Vance-to-Tull succession, the shape mappings, the "city" kind, the unset Feed burn rate, and the "fortified" status value. v1.3 adds three more: the forage, scavenge, and claim mechanics (rates, triggers, and the claim cost are fork test parameters, not canon). v1.4 adds two more: Bond recovery only through Dream Share (+1 to one Engine, 2 Feed cost, never above 5), and Seedborn rarity (Brigus is the only Seedborn in Fork A; no other Seedborn is added). The Engine Team may challenge any of them; the engine must not silently change them. v1.4 adds two more: Bond recovery only through Dream Share (+1 to one Engine, 2 Feed cost, never above 5), and Seedborn rarity (Brigus is the only Seedborn in Fork A; no other Seedborn is added). v1.5 adds two more: hunt Feed goes to the Pack, and Dream Share is a scored action, not a rest hook. The Engine Team may challenge any of them; the engine must not silently change them.
+
+## Schema extension requests (for the Engine Team)
+
+The seed uses two values the plan's schema does not list. The Engine Team decides whether to extend the schema or remap the values:
+
+1. **Location kind "city"** (Great Basin). The plan's kind enum is caravan/den/nest/wreck. A city is none of those.
+2. **Engine shape values.** The plan's shape enum is Stalker/Bulwark/Skytalon/Deepmaw. Razor-Back (tracked chassis) and Surveyor-Strider (surveyor/scout) are mapped to Stalker; Goliath (Dreadnought, pre-war machine) is mapped to Bulwark. The mappings are flagged in the seed; the real shapes are in the notes.
+
+## Future requirement — dynamic map (Phase 4 / Companion, NOT Phase 1)
+
+Bryan's requirement, recorded in the plan (section 13): the world view map must eventually become DYNAMIC. If a continent gets wiped out, a territory flips, a den falls, or a region is destroyed, the change must be visible on the map. Phase 1 keeps the static HTML world view and builds no dynamic map.
+
+What the seed does for it: the `map_state` section lists all 7 locations with controller, kind, and status, and the map-event rule requires every controller or status change to be an event row with location_id, old value, and new value. Locations are never deleted (drift rule DC-13), so a destroyed region renders as destroyed, not vanished. The dynamic map reads the latest event per location.
+
+## What the Engine Team does next
+
+Build the database from this seed (`state/ironwild-fork-a.sqlite`), then the tick loop, then the acceptance checks in plan section 10. If the engine needs a rule that is not in this seed, it stops and asks Lore instead of improvising. Nothing in this package touches a canon file.
+
+## Phase 2 seed questions (open, for Bryan — not applied)
+
+From the Fork A acceptance runs (2026-11-20 23:36 EST, verified against the 400-tick DB). Items 1 and 3 were fixed in seed v1.3 (2026-11-20 23:48 EST, Bryan's call to fix the quiet world before Phase 2). Item 2 is still open and is Bryan's call. Item 4 is an engine-side note.
+
+1. **Dream Share's vacuous branch — FIXED in v1.3.** Dream Share fired 92 times in 400 ticks and all 92 were note-only ("dream reveals a hidden trigger (recorded)") with zero material state change once the map was complete. The seed defined no hidden triggers. v1.3 caps the trigger: Dream Share fires only while an unmapped location exists. The hidden-trigger branch is removed. The cap is a fork rule, not a canon change.
+2. **Bond is one-way to 1 — RESOLVED in v1.4 (option C), firing conditions fixed in v1.5.** Four Pack Merges burned all five Engines to Bond 1, and Pack Merge can never fire again in this fork without a recovery rule. Bryan picked option C (2026-11-20 23:52 EST): Bond recovers through Dream Share. v1.4: Dream Share restores +1 Bond to one Engine (lowest Bond, ties to Sledge) at a cost of 2 Feed from the Pack, never above 5. Seedborns stay extremely rare (Brigus is the only Seedborn in Fork A) and their powers are heavy (restoring Bond is strong and costly, never free). v1.4 rerun finding: Dream Share never fired in 400 ticks, because the Pack's Feed pool had no income and Brigus rests only when nothing else is legal. v1.5 (Bryan's call 2026-11-21 00:10 EST, combined fix options 1 + 3): hunt Feed goes to the Pack, and Dream Share is a scored action, not a rest hook. No other Seedborn power was added; if Bryan wants more, that is a separate call.
+3. **Controller flips need a mechanic — FIXED in v1.3.** The seed defined no action or clock effect that flips a location's controller, so no flip could happen in Fork A. v1.3 adds the "claim" action for uncontrolled, mapped locations (Rust Dunes, Leviathan's Ribs, Northern Trench once mapped): controller becomes the claimant's faction, holder Salvage -1. Taking a controlled location (e.g. Great Basin) needs a separate siege/conquest rule — Bryan's call for later, not in v1.3.
+4. **Mapped vs status.** Leviathan's Ribs and Northern Trench are mapped=1 but their status string still reads "unmapped". The Phase 4 map must read the mapped flag, or the engine should update status on mapping.
+
+## Changelog
+
+- **v1.5, 2026-11-21 00:10 EST:** combined Dream Share fix, Bryan's call (options 1 + 3, matching Lore's note that option 3 alone would not fix the Feed floor). (1) Pack Feed income: hunt Feed now goes to the Pack, not the actor's holder. The hunters are the Pack (Brigus, Vance, Tull, Kaelen, Nest-Keeper), so the hunt feeds the Pack. v1.0-v1.4 routed it to the actor's holder (the Legion for four hunters, the Nest-Keepers for the Nest-Keeper), which starved the Pack's Feed pool — no action ever gave the Pack Feed — and left Dream Share's Bond branch unable to fire. The Legion's Feed now comes from forage; the rerun should watch the Legion's Feed. (3) Dream Share is now a scored action, not a rest hook: Brigus chooses it as his action for the tick, scored by its material effect. Bond branch rules unchanged from v1.4 (+1 to lowest Bond, ties to Sledge, Pack Feed -2, never above 5). Updates hunt, dream_share, DC-17; adds DC-19. Freeze unchanged (Turn 131 vFINAL).
+- **v1.4, 2026-11-20 23:52 EST:** Bond recovery through Dream Share, Bryan's call (option C, with his words: keep Seedborns extremely rare, give them heavier special powers). Dream Share now has two branches: map an unmapped location (no cost), or restore +1 Bond to one Engine (lowest Bond, ties to Sledge) at a cost of 2 Feed from the Pack, never above 5. The power is heavy by design: restoring all five Engines from Bond 1 to merge-ready costs real Feed, and Dream Share cannot fire for Bond when the Pack's Feed is below 2. Updates pack_merge, DC-06, DC-17; adds DC-18 (Bond-recovery guard + Seedborn rarity). All stale 'Bond never increases' language removed from the seed. No other Seedborn is added to the fork; no additional Seedborn power was invented. Freeze unchanged (Turn 131 vFINAL).
+- **v1.3, 2026-11-20 23:48 EST:** quiet-world fix, Bryan's call (fix the quiet world first, Phase 2 on hold until the seed revision lands). Three new fork-supplied actions: forage (Legion Captain, Legion Feed below 4, +2 Feed — the Legion's 600 forage the Basin; the campaign never defines how the Legion feeds itself, so the rate is a test parameter, not canon), scavenge (holder Salvage below 4, mapped wreck exists, +1 Salvage — stripping the war's wreckage, canon-consistent), claim (uncontrolled mapped location, holder Salvage 1+, controller becomes the claimant's faction, Salvage -1 — proves controller flips for the Phase 4 map; cannot take a controlled location). Dream Share capped to fire only while an unmapped location exists (the hidden-trigger branch is removed; it fired 92 times with zero material effect). Drift rule DC-17 guards the new actions. Freeze unchanged (Turn 131 vFINAL; the one freeze-scan hit, "sanctuary" in the Concord Blockade clock's source, is a pre-freeze meanwhile reference, not sequel state). Bond recovery NOT added — Bryan's call, still open (see Phase 2 seed questions, item 2).
+- **v1.2, 2026-11-20 23:31 EST:** Lore decision, Bryan's call via the hub: the Breaker Poacher Chief's raid target is Great Basin, like the Dust-Baron Captain. Changed from Concord Camp to resolve the evacuate block (the Chief raiding the camp fired evacuate into its stop-and-ask clause). Not a fallback location, not a Feed-only raid. Consequence: the evacuate action has no reachable trigger in Fork A (no raid targets Concord Camp) and stays dormant in the catalog for later forks. No other seed rule changes.
+- **v1.1, 2026-11-20 23:17 EST:** core identity added on Bryan's words ("at the end of the day its a zoid mixed with gai gao gar story"). `meta.dna` in the seed; drift rule DC-16 (no drift into generic mecha); the same DNA line added to `chatgpt-test/gpt-instructions.md`. The master bible already records this DNA ("Influences (DNA only, no canon imports): Zoids, Gaogaigar"); Bryan's statement confirms it in his own words. The DNA line in the instructions was added after the Turn C retest (9/10); it changes no mechanics, so the retest score stands for V2 as tested.
+- **v1.0, 2026-11-20:** initial seed package as approved.

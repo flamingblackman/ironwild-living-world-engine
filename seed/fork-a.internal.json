@@ -1,0 +1,2154 @@
+{
+ "actions": [
+  {
+   "actor_ids": [
+    "brigus",
+    "vance",
+    "tull",
+    "kaelen",
+    "nest_keeper"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "pack",
+     "holder_kind": "pack",
+     "op": "resource_add",
+     "qty": 2,
+     "resource": "Feed"
+    },
+    {
+     "engine": {
+      "location": "{location}",
+      "min_hunger": 0,
+      "prefer": "highest_hunger",
+      "target": "engine_at_location"
+     },
+     "op": "hunger_add",
+     "qty": -2
+    }
+   ],
+   "goal_tags": [],
+   "id": "hunt",
+   "need": [
+    {
+     "holder": "pack",
+     "holder_kind": "pack",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Feed",
+     "value": 3
+    }
+   ],
+   "trigger": {
+    "any": [
+     [
+      {
+       "kind": "engine_present",
+       "location": "{location}",
+       "min_hunger": 3
+      }
+     ],
+     [
+      {
+       "kind": "location_is",
+       "loc_kind": "wreck",
+       "location": "{location}",
+       "mapped": true
+      }
+     ]
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "brigus",
+    "vance",
+    "tull",
+    "kaelen",
+    "nest_keeper"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Feed"
+    },
+    {
+     "engine": {
+      "location": "{location}",
+      "min_hunger": 1,
+      "prefer": "highest_hunger",
+      "target": "engine_at_location"
+     },
+     "op": "hunger_add",
+     "qty": -2
+    }
+   ],
+   "goal_tags": [],
+   "id": "feed_engine",
+   "need": [
+    {
+     "kind": "engine_present",
+     "location": "{location}",
+     "min_hunger": 4
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "holder": "{holder}",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Feed",
+      "value": 1
+     },
+     {
+      "kind": "engine_present",
+      "location": "{location}",
+      "min_hunger": 1
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "vance"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage",
+     "when": {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    },
+    {
+     "holder": "pack",
+     "holder_kind": "pack",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage",
+     "when": {
+      "all": [
+       {
+        "holder": "ironwild_legion",
+        "holder_kind": "faction",
+        "kind": "resource",
+        "op": "<",
+        "resource": "Salvage",
+        "value": 1
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       }
+      ]
+     }
+    },
+    {
+     "entity_kind": "engine",
+     "id": {
+      "location": "{location}",
+      "prefer": "status_order",
+      "status_in": [
+       "netted",
+       "exhausted",
+       "damaged"
+      ],
+      "target": "engine_at_location"
+     },
+     "op": "status_set",
+     "status": "field-patched"
+    },
+    {
+     "clock": "great_basin_recovery",
+     "op": "clock_add",
+     "qty": 1,
+     "when": {
+      "actor": "{self}",
+      "kind": "actor_location",
+      "location": "great_basin"
+     }
+    }
+   ],
+   "goal_tags": [],
+   "id": "repair_engine",
+   "need": [
+    {
+     "kind": "engine_present",
+     "location": "{location}",
+     "status_in": [
+      "netted"
+     ]
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "kind": "engine_present",
+      "location": "{location}",
+      "status_in": [
+       "netted",
+       "exhausted",
+       "damaged"
+      ]
+     },
+     {
+      "any": [
+       {
+        "holder": "ironwild_legion",
+        "holder_kind": "faction",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       }
+      ]
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "tull",
+    "vance",
+    "nest_keeper",
+    "dust_baron_captain",
+    "breaker_poacher_chief"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "location": {
+      "target": "unmapped_location"
+     },
+     "mapped": 1,
+     "op": "location_set"
+    },
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "scout_wreck",
+   "need": [
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Salvage",
+     "value": 3
+    }
+   ],
+   "trigger": [
+    {
+     "kind": "unmapped_exists"
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "caravan_master"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "from": "caravan_concord",
+     "from_kind": "faction",
+     "op": "resource_move",
+     "qty": 2,
+     "resource": "Feed",
+     "to": "ironwild_legion",
+     "to_kind": "faction"
+    },
+    {
+     "from": "ironwild_legion",
+     "from_kind": "faction",
+     "op": "resource_move",
+     "qty": 2,
+     "resource": "Salvage",
+     "to": "caravan_concord",
+     "to_kind": "faction"
+    }
+   ],
+   "goal_tags": [],
+   "id": "trade_concord",
+   "need": [
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Salvage",
+     "value": 3
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "id": "concord_blockade",
+      "kind": "clock",
+      "op": "<",
+      "value": 6
+     },
+     {
+      "holder": "caravan_concord",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Feed",
+      "value": 2
+     },
+     {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 2
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "kaelen"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "from": "ironwild_legion",
+     "from_kind": "faction",
+     "op": "resource_move",
+     "qty": 2,
+     "resource": "Feed",
+     "to": "caravan_concord",
+     "to_kind": "faction"
+    },
+    {
+     "from": "caravan_concord",
+     "from_kind": "faction",
+     "op": "resource_move",
+     "qty": 2,
+     "resource": "Salvage",
+     "to": "ironwild_legion",
+     "to_kind": "faction"
+    }
+   ],
+   "goal_tags": [],
+   "id": "trade_kaelen",
+   "need": [
+    {
+     "holder": "{holder}",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Salvage",
+     "value": 3
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "id": "concord_blockade",
+      "kind": "clock",
+      "op": "<",
+      "value": 6
+     },
+     {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Feed",
+      "value": 2
+     },
+     {
+      "holder": "caravan_concord",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 2
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "dust_baron_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -2,
+     "resource": "Feed",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "entity_kind": "location",
+         "id": "great_basin",
+         "kind": "status",
+         "value": "fortified"
+        }
+       },
+       {
+        "not": {
+         "flag": "patrolled:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "holder": "dust_baron_remnants",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 2,
+     "resource": "Salvage",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "entity_kind": "location",
+         "id": "great_basin",
+         "kind": "status",
+         "value": "fortified"
+        }
+       },
+       {
+        "not": {
+         "flag": "patrolled:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "clock": "dust_baron_retaliation",
+     "op": "clock_add",
+     "qty": 1,
+     "when": {
+      "all": [
+       {
+        "not": {
+         "entity_kind": "location",
+         "id": "great_basin",
+         "kind": "status",
+         "value": "fortified"
+        }
+       },
+       {
+        "not": {
+         "flag": "patrolled:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "flag": "raid_in_progress:great_basin",
+     "op": "flag_set"
+    },
+    {
+     "op": "note",
+     "text": "raid blocked: Great Basin fortified",
+     "when": {
+      "entity_kind": "location",
+      "id": "great_basin",
+      "kind": "status",
+      "value": "fortified"
+     }
+    },
+    {
+     "op": "note",
+     "text": "raid blocked: Great Basin patrolled",
+     "when": {
+      "flag": "patrolled:great_basin",
+      "kind": "flag",
+      "present": true
+     }
+    }
+   ],
+   "goal_tags": [],
+   "id": "raid_captain",
+   "need": [
+    {
+     "holder": "dust_baron_remnants",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Salvage",
+     "value": 3
+    }
+   ],
+   "trigger": [
+    {
+     "id": "dust_baron_retaliation",
+     "kind": "clock",
+     "op": "<",
+     "value": 6
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "breaker_poacher_chief"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -2,
+     "resource": "Feed",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "entity_kind": "location",
+         "id": "great_basin",
+         "kind": "status",
+         "value": "fortified"
+        }
+       },
+       {
+        "not": {
+         "flag": "patrolled:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "holder": "breakers",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 2,
+     "resource": "Salvage",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "entity_kind": "location",
+         "id": "great_basin",
+         "kind": "status",
+         "value": "fortified"
+        }
+       },
+       {
+        "not": {
+         "flag": "patrolled:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "flag": "raid_in_progress:great_basin",
+     "op": "flag_set"
+    },
+    {
+     "op": "note",
+     "text": "raid blocked: Great Basin fortified",
+     "when": {
+      "entity_kind": "location",
+      "id": "great_basin",
+      "kind": "status",
+      "value": "fortified"
+     }
+    },
+    {
+     "op": "note",
+     "text": "raid blocked: Great Basin patrolled",
+     "when": {
+      "flag": "patrolled:great_basin",
+      "kind": "flag",
+      "present": true
+     }
+    }
+   ],
+   "goal_tags": [],
+   "id": "raid_chief",
+   "need": [
+    {
+     "holder": "breakers",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Salvage",
+     "value": 3
+    }
+   ],
+   "trigger": [
+    {
+     "kind": "always"
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "breaker_poacher_chief"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "entity_kind": "engine",
+     "id": {
+      "location": "{location}",
+      "prefer": "id",
+      "target": "engine_at_location"
+     },
+     "op": "status_set",
+     "status": "netted"
+    }
+   ],
+   "goal_tags": [],
+   "id": "net_ambush",
+   "need": [],
+   "trigger": [
+    {
+     "kind": "engine_present",
+     "location": "{location}"
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "brigus"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "location": "{location}",
+     "min_bond": 3,
+     "op": "pack_merge_burn",
+     "qty": -2
+    },
+    {
+     "location": "{location}",
+     "op": "free_netted"
+    },
+    {
+     "op": "note",
+     "text": "trap destroyed / threat broken"
+    }
+   ],
+   "goal_tags": [],
+   "id": "pack_merge",
+   "need": [
+    {
+     "kind": "engine_present",
+     "location": "{location}",
+     "status_in": [
+      "netted"
+     ]
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "count": 2,
+      "kind": "engines_ready",
+      "location": "{location}",
+      "min_bond": 3
+     },
+     {
+      "any": [
+       [
+        {
+         "kind": "engine_present",
+         "location": "{location}",
+         "status_in": [
+          "netted"
+         ]
+        }
+       ],
+       [
+        {
+         "flag": "raid_in_progress:great_basin",
+         "kind": "flag",
+         "present": true
+        }
+       ],
+       [
+        {
+         "flag": "raid_in_progress:concord_camp",
+         "kind": "flag",
+         "present": true
+        }
+       ]
+      ]
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "brigus"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "location": {
+      "target": "unmapped_location"
+     },
+     "mapped": 1,
+     "op": "location_set",
+     "when": {
+      "kind": "unmapped_exists"
+     }
+    },
+    {
+     "op": "note",
+     "text": "dream reveals an unmapped place",
+     "when": {
+      "kind": "unmapped_exists"
+     }
+    },
+    {
+     "engine": {
+      "max_bond": 5,
+      "target": "lowest_bond_engine"
+     },
+     "op": "bond_add",
+     "qty": 1,
+     "when": {
+      "all": [
+       {
+        "not": {
+         "kind": "unmapped_exists"
+        }
+       },
+       {
+        "kind": "any_bond",
+        "op": "<",
+        "value": 5
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Feed",
+        "value": 2
+       }
+      ]
+     }
+    },
+    {
+     "holder": "pack",
+     "holder_kind": "pack",
+     "op": "resource_add",
+     "qty": -2,
+     "resource": "Feed",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "kind": "unmapped_exists"
+        }
+       },
+       {
+        "kind": "any_bond",
+        "op": "<",
+        "value": 5
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Feed",
+        "value": 2
+       }
+      ]
+     }
+    },
+    {
+     "op": "note",
+     "text": "dream restores +1 Bond (Pack Feed -2)",
+     "when": {
+      "all": [
+       {
+        "not": {
+         "kind": "unmapped_exists"
+        }
+       },
+       {
+        "kind": "any_bond",
+        "op": "<",
+        "value": 5
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Feed",
+        "value": 2
+       }
+      ]
+     }
+    }
+   ],
+   "goal_tags": [],
+   "id": "dream_share",
+   "need": [
+    {
+     "kind": "any_bond",
+     "op": "<",
+     "value": 5
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "kind": "engine_present",
+      "location": "{location}"
+     },
+     {
+      "any": [
+       {
+        "kind": "unmapped_exists"
+       },
+       {
+        "all": [
+         {
+          "kind": "any_bond",
+          "op": "<",
+          "value": 5
+         },
+         {
+          "holder": "pack",
+          "holder_kind": "pack",
+          "kind": "resource",
+          "op": ">=",
+          "resource": "Feed",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "legion_captain",
+    "kaelen"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage",
+     "when": {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    },
+    {
+     "holder": "pack",
+     "holder_kind": "pack",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage",
+     "when": {
+      "all": [
+       {
+        "holder": "ironwild_legion",
+        "holder_kind": "faction",
+        "kind": "resource",
+        "op": "<",
+        "resource": "Salvage",
+        "value": 1
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       }
+      ]
+     }
+    },
+    {
+     "clock": "great_basin_recovery",
+     "op": "clock_add",
+     "qty": 1
+    }
+   ],
+   "goal_tags": [],
+   "id": "fortify",
+   "need": [
+    {
+     "id": "great_basin_recovery",
+     "kind": "clock",
+     "op": "<",
+     "value": 6
+    }
+   ],
+   "trigger": {
+    "all": [
+     {
+      "actor": "{self}",
+      "kind": "actor_location",
+      "location": "great_basin"
+     },
+     {
+      "any": [
+       {
+        "holder": "ironwild_legion",
+        "holder_kind": "faction",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       },
+       {
+        "holder": "pack",
+        "holder_kind": "pack",
+        "kind": "resource",
+        "op": ">=",
+        "resource": "Salvage",
+        "value": 1
+       }
+      ]
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "legion_captain",
+    "tull"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "flag": "patrolled:{location}",
+     "op": "flag_set"
+    }
+   ],
+   "goal_tags": [],
+   "id": "patrol",
+   "need": [],
+   "trigger": [
+    {
+     "kind": "always"
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "nest_keeper"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "nest_keepers",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
+     "resource": "Feed"
+    },
+    {
+     "op": "note",
+     "text": "den maintained"
+    }
+   ],
+   "goal_tags": [],
+   "id": "tend_den",
+   "need": [
+    {
+     "holder": "nest_keepers",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Feed",
+     "value": 5
+    }
+   ],
+   "trigger": [
+    {
+     "actor": "{self}",
+     "kind": "actor_location",
+     "location": "chalk_canyons"
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "high_baron"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "entity_kind": "npc",
+     "id": "{self}",
+     "op": "status_set",
+     "status": "active, watched",
+     "when": {
+      "entity_kind": "npc",
+      "id": "{self}",
+      "kind": "status",
+      "value": "active, under guard"
+     }
+    },
+    {
+     "entity_kind": "npc",
+     "id": "{self}",
+     "op": "status_set",
+     "status": "active",
+     "when": {
+      "entity_kind": "npc",
+      "id": "{self}",
+      "kind": "status",
+      "value": "active, watched"
+     }
+    },
+    {
+     "entity_kind": "npc",
+     "id": "{self}",
+     "location": "rust_dunes",
+     "op": "move",
+     "when": {
+      "entity_kind": "npc",
+      "id": "{self}",
+      "kind": "status",
+      "value": "active, watched"
+     }
+    }
+   ],
+   "goal_tags": [],
+   "id": "bargain",
+   "need": [],
+   "trigger": [
+    {
+     "entity_kind": "npc",
+     "id": "{self}",
+     "kind": "status_in",
+     "values": [
+      "active, under guard",
+      "active, watched"
+     ]
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "caravan_master"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "entity_kind": "npc",
+     "id": "{self}",
+     "location": "concord_camp",
+     "op": "move"
+    }
+   ],
+   "goal_tags": [],
+   "halt_if": {
+    "actor": "{self}",
+    "kind": "actor_location",
+    "location": "concord_camp"
+   },
+   "halt_message": "Evacuate: the attacked location IS Concord Camp, the safe location. Lore must name a fallback; the engine stops instead of improvising.",
+   "id": "evacuate",
+   "need": [],
+   "trigger": [
+    {
+     "flag": "raid_in_progress:{location}",
+     "kind": "flag",
+     "present": true
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "brigus",
+    "vance",
+    "tull",
+    "kaelen",
+    "nest_keeper",
+    "caravan_master",
+    "high_baron",
+    "dust_baron_captain",
+    "breaker_poacher_chief",
+    "legion_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "op": "rest"
+    }
+   ],
+   "goal_tags": [],
+   "id": "rest",
+   "need": [],
+   "trigger": [
+    {
+     "kind": "always"
+    }
+   ],
+   "weight": 0
+  },
+  {
+   "actor_ids": [
+    "legion_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 2,
+     "resource": "Feed"
+    }
+   ],
+   "goal_tags": [],
+   "id": "forage",
+   "need": [],
+   "trigger": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "kind": "resource",
+     "op": "<",
+     "resource": "Feed",
+     "value": 4
+    }
+   ],
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "legion_captain",
+    "vance",
+    "tull"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "scavenge_legion",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": "<",
+      "resource": "Salvage",
+      "value": 4
+     },
+     {
+      "kind": "mapped_location_exists",
+      "loc_kind": "wreck"
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "dust_baron_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "dust_baron_remnants",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "scavenge_dust_baron",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "holder": "dust_baron_remnants",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": "<",
+      "resource": "Salvage",
+      "value": 4
+     },
+     {
+      "kind": "mapped_location_exists",
+      "loc_kind": "wreck"
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "breaker_poacher_chief"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "holder": "breakers",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "scavenge_breakers",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "holder": "breakers",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": "<",
+      "resource": "Salvage",
+      "value": 4
+     },
+     {
+      "kind": "mapped_location_exists",
+      "loc_kind": "wreck"
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "legion_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "controller": "ironwild_legion",
+     "location": {
+      "target": "uncontrolled_mapped_location"
+     },
+     "op": "location_set"
+    },
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "claim_legion",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "controlled": false,
+      "kind": "mapped_location_exists"
+     },
+     {
+      "holder": "ironwild_legion",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "dust_baron_captain"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "controller": "dust_baron_remnants",
+     "location": {
+      "target": "uncontrolled_mapped_location"
+     },
+     "op": "location_set"
+    },
+    {
+     "holder": "dust_baron_remnants",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "claim_dust_baron",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "controlled": false,
+      "kind": "mapped_location_exists"
+     },
+     {
+      "holder": "dust_baron_remnants",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "breaker_poacher_chief"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "controller": "breakers",
+     "location": {
+      "target": "uncontrolled_mapped_location"
+     },
+     "op": "location_set"
+    },
+    {
+     "holder": "breakers",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "claim_breakers",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "controlled": false,
+      "kind": "mapped_location_exists"
+     },
+     {
+      "holder": "breakers",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    ]
+   },
+   "weight": 5
+  },
+  {
+   "actor_ids": [
+    "nest_keeper"
+   ],
+   "actor_kind": "npc",
+   "effect": [
+    {
+     "controller": "nest_keepers",
+     "location": {
+      "target": "uncontrolled_mapped_location"
+     },
+     "op": "location_set"
+    },
+    {
+     "holder": "nest_keepers",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -1,
+     "resource": "Salvage"
+    }
+   ],
+   "goal_tags": [],
+   "id": "claim_nest_keepers",
+   "need": [],
+   "trigger": {
+    "all": [
+     {
+      "controlled": false,
+      "kind": "mapped_location_exists"
+     },
+     {
+      "holder": "nest_keepers",
+      "holder_kind": "faction",
+      "kind": "resource",
+      "op": ">=",
+      "resource": "Salvage",
+      "value": 1
+     }
+    ]
+   },
+   "weight": 5
+  }
+ ],
+ "bond_recovery": "dream_share_only",
+ "bonds": [
+  {
+   "bond": 3,
+   "engine": "sledge",
+   "pilot": "brigus"
+  },
+  {
+   "bond": 5,
+   "engine": "skytalon",
+   "pilot": null
+  },
+  {
+   "bond": 3,
+   "engine": "razor_back",
+   "pilot": null
+  },
+  {
+   "bond": 5,
+   "engine": "goliath",
+   "pilot": null
+  },
+  {
+   "bond": 5,
+   "engine": "strider",
+   "pilot": null
+  }
+ ],
+ "clocks": [
+  {
+   "id": "dust_baron_retaliation",
+   "max": 6,
+   "name": "Dust-Baron Retaliation",
+   "on_complete": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -2,
+     "resource": "Feed"
+    },
+    {
+     "op": "note",
+     "text": "Dust-Baron captains strike Great Basin in force (clock completion)"
+    }
+   ],
+   "status": "running",
+   "value": 0
+  },
+  {
+   "id": "concord_blockade",
+   "max": 6,
+   "name": "Concord Blockade",
+   "on_complete": [
+    {
+     "faction": "caravan_concord",
+     "op": "standing_set",
+     "other": "ironwild_legion",
+     "value": "hostile"
+    },
+    {
+     "op": "note",
+     "text": "The road closes entirely; trade with the Concord is blocked until Lore addresses it"
+    }
+   ],
+   "status": "running",
+   "value": 0
+  },
+  {
+   "id": "legion_cohesion",
+   "max": 6,
+   "name": "Legion Cohesion",
+   "on_complete": [
+    {
+     "holder": "ironwild_legion",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": -2,
+     "resource": "Feed"
+    },
+    {
+     "holder": "dust_baron_remnants",
+     "holder_kind": "faction",
+     "op": "resource_add",
+     "qty": 2,
+     "resource": "Salvage"
+    },
+    {
+     "op": "note",
+     "text": "A company of absorbed mercenaries deserts (clock completion)"
+    }
+   ],
+   "status": "running",
+   "value": 0
+  },
+  {
+   "id": "great_basin_recovery",
+   "max": 6,
+   "name": "Great Basin Recovery",
+   "on_complete": [
+    {
+     "location": "great_basin",
+     "op": "location_set",
+     "status": "fortified"
+    },
+    {
+     "op": "note",
+     "text": "Great Basin fully re-fortified; raids against it cannot land while fortified"
+    }
+   ],
+   "status": "running",
+   "value": 0
+  }
+ ],
+ "engines": [
+  {
+   "hunger": 3,
+   "hunger_threshold": 5,
+   "hunger_type": "protective",
+   "id": "sledge",
+   "location": "great_basin",
+   "molt_trigger": 0,
+   "name": "Gold Sledge",
+   "pilot": "brigus",
+   "shape": "Bulwark",
+   "status": "exhausted"
+  },
+  {
+   "hunger": 2,
+   "hunger_threshold": 5,
+   "hunger_type": "hunt",
+   "id": "skytalon",
+   "location": "great_basin",
+   "molt_trigger": 0,
+   "name": "Skytalon",
+   "pilot": null,
+   "shape": "Skytalon",
+   "status": "exhausted"
+  },
+  {
+   "hunger": 3,
+   "hunger_threshold": 5,
+   "hunger_type": "territory",
+   "id": "razor_back",
+   "location": "great_basin",
+   "molt_trigger": 0,
+   "name": "Razor-Back",
+   "pilot": null,
+   "shape": "Stalker",
+   "status": "exhausted"
+  },
+  {
+   "hunger": 1,
+   "hunger_threshold": 5,
+   "hunger_type": "wreckage",
+   "id": "goliath",
+   "location": "great_basin",
+   "molt_trigger": 0,
+   "name": "Goliath Dreadnought",
+   "pilot": null,
+   "shape": "Bulwark",
+   "status": "exhausted"
+  },
+  {
+   "hunger": 1,
+   "hunger_threshold": 5,
+   "hunger_type": "speed",
+   "id": "strider",
+   "location": "great_basin",
+   "molt_trigger": 0,
+   "name": "Surveyor-Strider",
+   "pilot": null,
+   "shape": "Stalker",
+   "status": "exhausted"
+  }
+ ],
+ "era_length": 365,
+ "factions": [
+  {
+   "doctrine": "Hold the Great Basin and the Empire; the King is a Beacon.",
+   "id": "ironwild_legion",
+   "name": "Ironwild Legion",
+   "standings": {
+    "breakers": "hostile",
+    "caravan_concord": "distrustful",
+    "dust_baron_remnants": "hostile",
+    "nest_keepers": "allied",
+    "rust_choir": "unknown"
+   }
+  },
+  {
+   "doctrine": "Keep road families alive.",
+   "id": "caravan_concord",
+   "name": "Caravan Concord",
+   "standings": {
+    "breakers": "hostile",
+    "dust_baron_remnants": "wary",
+    "ironwild_legion": "distrustful",
+    "nest_keepers": "wary",
+    "rust_choir": "unknown"
+   }
+  },
+  {
+   "doctrine": "Take what the road leaves; poach Engines and salvage.",
+   "id": "breakers",
+   "name": "Breakers",
+   "standings": {
+    "caravan_concord": "hostile",
+    "dust_baron_remnants": "wary",
+    "ironwild_legion": "hostile",
+    "nest_keepers": "hostile",
+    "rust_choir": "unknown"
+   }
+  },
+  {
+   "doctrine": "Keep the dens; guard the nest.",
+   "id": "nest_keepers",
+   "name": "Nest-Keepers",
+   "standings": {
+    "breakers": "hostile",
+    "caravan_concord": "wary",
+    "dust_baron_remnants": "wary",
+    "ironwild_legion": "allied",
+    "rust_choir": "unknown"
+   }
+  },
+  {
+   "doctrine": "Retake standing.",
+   "id": "dust_baron_remnants",
+   "name": "Dust-Baron Remnants",
+   "standings": {
+    "breakers": "wary",
+    "caravan_concord": "wary",
+    "ironwild_legion": "hostile",
+    "nest_keepers": "wary",
+    "rust_choir": "unknown"
+   }
+  },
+  {
+   "doctrine": "NOT ESTABLISHED in canon. Background pressure only; no actor, no actions in Phase 1.",
+   "id": "rust_choir",
+   "name": "Rust Choir",
+   "standings": {
+    "breakers": "unknown",
+    "caravan_concord": "unknown",
+    "dust_baron_remnants": "unknown",
+    "ironwild_legion": "unknown",
+    "nest_keepers": "unknown"
+   }
+  }
+ ],
+ "feed_burn": [
+  {
+   "holder": "ironwild_legion",
+   "holder_kind": "faction",
+   "qty": 1
+  },
+  {
+   "holder": "pack",
+   "holder_kind": "pack",
+   "qty": 1
+  }
+ ],
+ "fork_label": "Ironwild Fork A \u2014 The Beacon Year",
+ "legacy": {
+  "era_names": [
+   "The Beacon Year",
+   null
+  ],
+  "retire_age": null
+ },
+ "locations": [
+  {
+   "condition": "siege-scarred",
+   "controller": "ironwild_legion",
+   "id": "great_basin",
+   "kind": "city",
+   "mapped": true,
+   "name": "Great Basin",
+   "status": "intact"
+  },
+  {
+   "condition": "final battle site, wreckage-strewn",
+   "controller": "ironwild_legion",
+   "id": "salt_flats",
+   "kind": "wreck",
+   "mapped": true,
+   "name": "Salt Flats",
+   "status": "damaged"
+  },
+  {
+   "condition": "bunker fissure, Nest-Keeper den",
+   "controller": "nest_keepers",
+   "id": "chalk_canyons",
+   "kind": "den",
+   "mapped": true,
+   "name": "Chalk Canyons",
+   "status": "intact"
+  },
+  {
+   "condition": "dry wash, Dust-Baron captains gathering",
+   "controller": null,
+   "id": "rust_dunes",
+   "kind": "wreck",
+   "mapped": true,
+   "name": "Rust Dunes",
+   "status": "contested"
+  },
+  {
+   "condition": "chained-hauler fortress, two days south",
+   "controller": "caravan_concord",
+   "id": "concord_camp",
+   "kind": "caravan",
+   "mapped": true,
+   "name": "Concord Camp",
+   "status": "intact"
+  },
+  {
+   "condition": "unknown",
+   "controller": null,
+   "id": "leviathans_ribs",
+   "kind": "wreck",
+   "mapped": false,
+   "name": "Leviathan's Ribs",
+   "status": "unmapped"
+  },
+  {
+   "condition": "unknown",
+   "controller": null,
+   "id": "northern_trench",
+   "kind": "wreck",
+   "mapped": false,
+   "name": "Northern Trench",
+   "status": "unmapped"
+  }
+ ],
+ "npcs": [
+  {
+   "age": null,
+   "capabilities": [
+    "command_legion",
+    "dream_share",
+    "ride_sledge",
+    "pack_merge"
+   ],
+   "faction": "ironwild_legion",
+   "goals": [
+    "Hold the Empire and the Pack together; remain a Beacon, not Swallowed."
+   ],
+   "id": "brigus",
+   "location": "great_basin",
+   "name": "Brigus",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "repair_engine",
+    "fight",
+    "scout_wreck"
+   ],
+   "faction": "ironwild_legion",
+   "goals": [
+    "Keep the Pack's Engines fighting-fit."
+   ],
+   "id": "vance",
+   "location": "great_basin",
+   "name": "Vance",
+   "status": "active",
+   "successor": "tull"
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "fight",
+    "scout_wreck",
+    "patrol"
+   ],
+   "faction": "ironwild_legion",
+   "goals": [
+    "Keep the Pack alive on the road."
+   ],
+   "id": "tull",
+   "location": "great_basin",
+   "name": "Tull",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "command_legion",
+    "negotiate",
+    "fortify"
+   ],
+   "faction": "ironwild_legion",
+   "goals": [
+    "Hold the city and the Empire's alliances."
+   ],
+   "id": "kaelen",
+   "location": "great_basin",
+   "name": "Queen Kaelen",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "tend_den",
+    "transport",
+    "scout_wreck"
+   ],
+   "faction": "nest_keepers",
+   "goals": [
+    "Protect the nest and the Prime-Resonator."
+   ],
+   "id": "nest_keeper",
+   "location": "chalk_canyons",
+   "name": "Nest-Keeper",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "trade",
+    "evacuate",
+    "patrol"
+   ],
+   "faction": "caravan_concord",
+   "goals": [
+    "Keep road families alive."
+   ],
+   "id": "caravan_master",
+   "location": "concord_camp",
+   "name": "Caravan Master (Concord)",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "bargain"
+   ],
+   "faction": null,
+   "goals": [
+    "Secure release without taking the blood-oath."
+   ],
+   "id": "high_baron",
+   "location": "great_basin",
+   "name": "High Baron",
+   "status": "active, under guard",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "raid",
+    "scout_wreck"
+   ],
+   "faction": "dust_baron_remnants",
+   "goals": [
+    "Retake standing; strike the unshielded city now, or wait for the Concord to move first."
+   ],
+   "id": "dust_baron_captain",
+   "location": "rust_dunes",
+   "name": "Dust-Baron Captain (role label)",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "raid",
+    "net_ambush",
+    "scout_wreck"
+   ],
+   "faction": "breakers",
+   "goals": [
+    "Take Engines and salvage from the road."
+   ],
+   "id": "breaker_poacher_chief",
+   "location": "chalk_canyons",
+   "name": "Breaker Poacher Chief (role label)",
+   "status": "active",
+   "successor": null
+  },
+  {
+   "age": null,
+   "capabilities": [
+    "patrol",
+    "fortify",
+    "fight"
+   ],
+   "faction": "ironwild_legion",
+   "goals": [
+    "Hold the city and the road."
+   ],
+   "id": "legion_captain",
+   "location": "great_basin",
+   "name": "Legion Captain (role label)",
+   "status": "active",
+   "successor": null
+  }
+ ],
+ "resources": [
+  {
+   "holder": "ironwild_legion",
+   "holder_kind": "faction",
+   "qty": 12,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "ironwild_legion",
+   "holder_kind": "faction",
+   "qty": 10,
+   "resource": "Feed"
+  },
+  {
+   "holder": "ironwild_legion",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "ironwild_legion",
+   "holder_kind": "faction",
+   "qty": 2,
+   "resource": "Territory"
+  },
+  {
+   "holder": "pack",
+   "holder_kind": "pack",
+   "qty": 4,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "pack",
+   "holder_kind": "pack",
+   "qty": 6,
+   "resource": "Feed"
+  },
+  {
+   "holder": "pack",
+   "holder_kind": "pack",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "pack",
+   "holder_kind": "pack",
+   "qty": 0,
+   "resource": "Territory"
+  },
+  {
+   "holder": "caravan_concord",
+   "holder_kind": "faction",
+   "qty": 8,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "caravan_concord",
+   "holder_kind": "faction",
+   "qty": 8,
+   "resource": "Feed"
+  },
+  {
+   "holder": "caravan_concord",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "caravan_concord",
+   "holder_kind": "faction",
+   "qty": 1,
+   "resource": "Territory"
+  },
+  {
+   "holder": "nest_keepers",
+   "holder_kind": "faction",
+   "qty": 2,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "nest_keepers",
+   "holder_kind": "faction",
+   "qty": 4,
+   "resource": "Feed"
+  },
+  {
+   "holder": "nest_keepers",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "nest_keepers",
+   "holder_kind": "faction",
+   "qty": 1,
+   "resource": "Territory"
+  },
+  {
+   "holder": "dust_baron_remnants",
+   "holder_kind": "faction",
+   "qty": 3,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "dust_baron_remnants",
+   "holder_kind": "faction",
+   "qty": 2,
+   "resource": "Feed"
+  },
+  {
+   "holder": "dust_baron_remnants",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "dust_baron_remnants",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Territory"
+  },
+  {
+   "holder": "breakers",
+   "holder_kind": "faction",
+   "qty": 2,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "breakers",
+   "holder_kind": "faction",
+   "qty": 1,
+   "resource": "Feed"
+  },
+  {
+   "holder": "breakers",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "breakers",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Territory"
+  },
+  {
+   "holder": "rust_choir",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Salvage"
+  },
+  {
+   "holder": "rust_choir",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Feed"
+  },
+  {
+   "holder": "rust_choir",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Cores"
+  },
+  {
+   "holder": "rust_choir",
+   "holder_kind": "faction",
+   "qty": 0,
+   "resource": "Territory"
+  }
+ ],
+ "rng_seed": 131,
+ "source_snapshot": "Ironwild Turn 131 vFINAL (v3.00.2), CAMPAIGN COMPLETE",
+ "world_id": "ironwild-fork-a"
+}
