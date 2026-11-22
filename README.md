@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3%20stdlib%20only-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![SQLite](https://img.shields.io/badge/SQLite-Single%20source%20of%20truth-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
-[![Tests](https://img.shields.io/badge/Tests-151%20passing-brightgreen?style=flat)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-199%20passing-brightgreen?style=flat)](tests/)
 [![Status](https://img.shields.io/badge/Status-Stage%202%20LIVE-brightgreen?style=flat)](stage-2-plan.md)
 
 </div>
@@ -40,7 +40,7 @@ flowchart TD
 | Cast | 10 NPCs · 5 Engines · 6 factions · 7 locations |
 | Catalog | 18 actions · 4 clocks · era 365 ticks |
 | Engine | Python 3 stdlib + SQLite, no LLM ever writes state |
-| Proof | 151 tests passing · 400-tick fast-forward · hash-chained event log |
+| Proof | 199 tests passing · 400-tick fast-forward · hash-chained event log |
 
 ## What a tick looks like
 
@@ -88,6 +88,53 @@ Ragnus is short and skinny, has a huge rugged Afro, and wears a black
 scarf around the neck (Bryan-confirmed). Parser bug fixed, 4 new
 regression tests. Fork B's canon, seed, Turn 1 handshake, and config are
 not in this repo yet. See `stage-2-plan.md`.
+
+**Status (2026-11-22):** 199 tests pass (verified by my own run). The turn
+wrapper is built and verified (`src/turn.py`): a turn applies as one
+BEGIN IMMEDIATE transaction, applied turns are recorded in
+`applied_turns`, and the event log enforces a UNIQUE `prev_hash` (Step 1
+slice 1). The RNG is now a single per-actor scheme (Step 1 slice 2). Two
+small fixes landed, the seed validator `tools/check_seed.py` is live, and
+a rumor fix landed in `handshake.py`. Two Fork B seed diffs approved by
+Lore and Bryan are applied and verified in the live Fork B world
+(trade_concord points at caravan_route; scavengers get the raid need
+bonus). The dead repair_engine clock_add was DROPPED by Bryan's call
+("Drop the dead piece"), superseding the earlier "point it at the bind
+counter" plan. Live Fork B world: DB hash 053517fc32e9, tick 3,
+last_swept 1, ForkB-v1.0, 22 events, Ashfang Bond 2, free and battered,
+net dropped. **WorldRenewal builds A to I APPROVED (2026-11-22),** in
+build order, then ArcTurnover after; aging option 5 approved (hand over
+to a new hero — Ragnus ages and retires, a successor hero Bryan creates
+when the time comes, Ragnus retires alive, maybe as a mentor,
+multi-generation saga); the significance definition is CONFIRMED;
+ruination added as Build I. ArcTurnover is a milestone after
+WorldRenewal: arcs / sagas IF earned, the engine detects, Lore decides
+it is earned, Bryan approves the new arc. First build step: Build A,
+repeatable clocks. **Dragon Ball fork APPROVED (2026-11-22), first, as
+the test for the universal engine** — canon-first, no code until the
+canon and seed exist. Qorn is live, Spinach is frozen, both untouched.
+See `docs/worldrenewal-plan.md`, `docs/roadmap-for-muse-2026-11-22.md`,
+and `docs/ironwild-engine-workflow.md`.
+
+## Engine work (2026-11-22)
+
+Turn wrapper (`src/turn.py`, plan in `docs/turn-wrapper-plan.md`): one
+turn, one transaction. Step 1 slice 1 (plan in
+`docs/step1-slice1-plan.md`): BEGIN IMMEDIATE transactions, an
+`applied_turns` table recording every applied turn, and a UNIQUE
+`prev_hash` on the event log so a double-apply is refused by the
+database, not by convention. Step 1 slice 2 (plan in
+`docs/step1-slice2-plan.md`): a single per-actor RNG scheme, replacing
+the ad-hoc draws. Seed validator (`tools/check_seed.py`, tests in
+`tests/test_check_seed.py`): catches a seed action whose effect has a
+clock_add on a clock the need never names, and other seed-shape errors
+before they reach a run. Rumor fix in `handshake.py`. Two small fixes
+(plan in `docs/two-small-fixes-plan.md`). Step 0 audit
+(`tools/audit_step0.py`, `docs/step0-audit-2026-11-22.md`) and the
+1000-tick Fork B measurement
+(`docs/fork-b-1000-tick-measurement-2026-11-22.md`): 48 new tests across
+`test_turn.py`, `test_step1_slice1.py`, `test_step1_slice2.py`, and
+`test_check_seed.py`, 199 total, all passing.
 
 ## v1.6 engine work (2026-11-21)
 
@@ -271,9 +318,15 @@ living-world-engine/
     checkpoint.py         — checkpoint and carried-state records
     session.py            — session flag
     drive_io.py           — proposal/handshake file exchange
+    turn.py               — turn wrapper: one turn, one transaction
+    apply_adapter.py      — seed adapter application
+  tools/
+    check_seed.py         — seed validator
+    audit_step0.py        — step 0 audit runner
+    verify_turn_wrapper.py — turn wrapper verification
   tests/
     fixture_seed.json     — TEST FIXTURE, synthetic actors, NOT canon
-    test_*.py             — 151 tests across 13 files
+    test_*.py             — 199 tests across 18 files
   runs/<run-id>/          — proof runs: database + world-view.html
 ```
 
@@ -281,7 +334,7 @@ living-world-engine/
 
 ```bash
 cd living-world-engine
-python3 -m unittest discover -s tests -v   # the 151 tests
+python3 -m unittest discover -s tests -v   # the 199 tests
 
 # A run (fixture shown; replace with seed/fork-a.json when Lore delivers):
 python3 -m src.run seed --seed tests/fixture_seed.json --db runs/proof-30/fork-a.sqlite

@@ -110,6 +110,27 @@ CREATE TABLE IF NOT EXISTS snapshots (
     state_sha256 TEXT NOT NULL
 );
 
+-- Which turns have been applied, and by which exact block. The
+-- duplicate guard in the apply adapter reads this table (Step 1);
+-- the registry remains the record for pre-migration applies.
+-- Written in the same transaction as the sweep itself.
+CREATE TABLE IF NOT EXISTS applied_turns (
+    turn         INTEGER PRIMARY KEY,
+    content_hash TEXT NOT NULL,
+    state_version TEXT NOT NULL,
+    applied_at   TEXT NOT NULL,
+    approver     TEXT NOT NULL,
+    source       TEXT NOT NULL,  -- drive | local-file | manual-sweep
+    proposal_id  TEXT
+);
+
+-- The hash chain's second line of defense (Step 1): no two events
+-- may claim the same predecessor, so a second writer cannot fork
+-- the chain silently. Verified safe on the live DBs (no duplicate
+-- prev_hash in Fork A or Fork B).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_events_prev_hash
+ON events(prev_hash);
+
 -- Per-tick flags (patrolled locations, raids in progress, rested actors,
 -- merged pairs). Set during a tick, cleared at the start of the next tick.
 CREATE TABLE IF NOT EXISTS tick_flags (

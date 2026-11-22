@@ -74,7 +74,13 @@ class TestHandshake(unittest.TestCase):
                     "controller": "breakers"}])
         events.append_event(
             conn, tick, "dust_baron_captain", "raid_captain", None, None,
-            [{"op": "flag_set", "flag": "raid_great_basin",
+            [{"op": "resource_add", "holder": "great_basin",
+              "holder_kind": "faction", "resource": "Feed", "qty": -2,
+              "applied_qty": -2},
+             {"op": "resource_add", "holder": "dust_baron_remnants",
+              "holder_kind": "faction", "resource": "Salvage", "qty": 2,
+              "applied_qty": 2},
+             {"op": "flag_set", "flag": "raid_great_basin",
               "value": "great_basin"}])
         events.append_event(
             conn, tick, "caravan_master", "trade_concord", None, None,
@@ -348,6 +354,76 @@ class TestHandshake(unittest.TestCase):
         self.assertNotIn("sweep_clock", result["text"])
         self.assertNotIn("sweep: clock", result["text"])
         conn.close()
+
+
+class TestRumorMateriality(unittest.TestCase):
+    """Rumors trace to visible change only: a fully-blocked raid
+    (material ops skipped, only a flag_set and notes applied) yields
+    no rumor, while a raid that actually took goods does."""
+
+    PLACES = {"rust_dunes": "Rust Dunes", "great_basin": "Great Basin"}
+    CLOCKS = {"engine_awakening": "Engine Awakening"}
+
+    def _rumor(self, action, actor, effect):
+        row = {"action": action, "actor_id": actor,
+               "effect": json.dumps(effect)}
+        return handshake_mod._rumor_for_event(row, self.PLACES, self.CLOCKS)
+
+    def test_blocked_raid_no_rumor(self):
+        # Real blocked-raid shape from the Fork B 1,000-tick sim.
+        effect = [
+            {"op": "resource_add", "holder": "great_basin",
+             "holder_kind": "faction", "resource": "Feed", "qty": -2,
+             "skipped": True},
+            {"op": "resource_add", "holder": "dust_baron_remnants",
+             "holder_kind": "faction", "resource": "Salvage", "qty": 2,
+             "skipped": True},
+            {"op": "clock_add", "clock": "dust_baron_retaliation",
+             "qty": 1, "skipped": True},
+            {"op": "flag_set", "flag": "raid_in_progress:great_basin",
+             "tick": 2},
+            {"op": "note", "text": "raid blocked: Great Basin fortified"},
+            {"op": "note", "text": "raid blocked: Great Basin patrolled",
+             "skipped": True},
+        ]
+        self.assertIsNone(self._rumor(
+            "raid_captain", "dust_baron_captain", effect))
+
+    def test_successful_raid_rumors(self):
+        effect = [
+            {"op": "resource_add", "holder": "great_basin",
+             "holder_kind": "faction", "resource": "Feed", "qty": -2,
+             "applied_qty": -2},
+            {"op": "resource_add", "holder": "dust_baron_remnants",
+             "holder_kind": "faction", "resource": "Salvage", "qty": 2,
+             "applied_qty": 2},
+        ]
+        rumor = self._rumor("raid_captain", "dust_baron_captain", effect)
+        self.assertIsNotNone(rumor)
+        self.assertIn("Great Basin", rumor)
+
+    def test_flag_only_raid_no_rumor(self):
+        effect = [{"op": "flag_set", "flag": "raid_great_basin",
+                   "value": "great_basin"}]
+        self.assertIsNone(self._rumor(
+            "raid_captain", "dust_baron_captain", effect))
+
+    def test_skipped_claim_no_rumor(self):
+        effect = [{"op": "location_set", "location": "rust_dunes",
+                   "controller": "breakers", "skipped": True}]
+        self.assertIsNone(self._rumor(
+            "claim_breakers", "breaker_poacher_chief", effect))
+
+    def test_complete_still_rumors(self):
+        effect = [{"op": "clock_add", "clock": "engine_awakening",
+                   "qty": 1, "applied_qty": 1}]
+        rumor = self._rumor("complete", "clock:engine_awakening", effect)
+        self.assertIsNotNone(rumor)
+        self.assertIn("Engine Awakening", rumor)
+
+    def test_empty_effect_unchanged(self):
+        self.assertIsNone(self._rumor(
+            "raid_captain", "dust_baron_captain", []))
 
 
 if __name__ == "__main__":

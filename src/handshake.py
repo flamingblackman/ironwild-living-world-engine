@@ -108,6 +108,24 @@ def _event_place(effect, places):
     return None
 
 
+_MATERIAL_RUMOR_OPS = frozenset({
+    "resource_add", "resource_move", "clock_add", "location_set",
+    "status_set", "bond_add", "move", "molt_trigger_set", "standing_set",
+})
+
+
+def _is_material_rumor_op(op):
+    """True when one effect op visibly changed the world: a resource,
+    clock, location, status, bond, move, molt-trigger, or standing
+    change that applied (not skipped, and not clamped to zero). Notes
+    and bookkeeping flags do not count."""
+    if not isinstance(op, dict) or op.get("op") not in _MATERIAL_RUMOR_OPS:
+        return False
+    if op.get("skipped"):
+        return False
+    return op.get("applied_qty", 1) != 0
+
+
 def _rumor_for_event(row, places, clocks):
     """One rumor string for a logged event, or None when the event is
     not rumor-eligible or carries no place/clock to name."""
@@ -117,6 +135,12 @@ def _rumor_for_event(row, places, clocks):
     try:
         effect = json.loads(row["effect"])
     except (ValueError, TypeError):
+        return None
+    if isinstance(effect, list) and effect and not any(
+            _is_material_rumor_op(op) for op in effect):
+        # No visible change landed (every op is a note, a bookkeeping
+        # flag, or skipped), so there is nothing to rumor about. A
+        # fully-blocked raid must not yield a "raiders struck" rumor.
         return None
     if action == "complete":
         clock_id = row["actor_id"].split(":", 1)[-1]

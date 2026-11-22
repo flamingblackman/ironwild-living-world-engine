@@ -26,6 +26,10 @@ def load_seed(conn, seed):
     db.set_meta(conn, "fork_label", seed["fork_label"])
     db.set_meta(conn, "source_snapshot", seed["source_snapshot"])
     db.set_meta(conn, "rng_seed", seed["rng_seed"])
+    # rng_scheme: v2 is the default for new worlds; a seed may pin
+    # "v1" explicitly. Pre-scheme DBs have no key and the tick path
+    # treats a missing key as v1, so they replay identically.
+    db.set_meta(conn, "rng_scheme", str(seed.get("rng_scheme", "v2")))
     db.set_meta(conn, "era_length", seed["era_length"])
     db.set_meta(conn, "tick", 0)
     db.set_meta(conn, "legacy", json.dumps(seed.get("legacy", {})))

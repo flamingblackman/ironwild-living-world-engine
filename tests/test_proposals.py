@@ -17,6 +17,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from src import db
 from src import proposals as proposals_mod
 from src import sweep as sweep_mod
 from tests.helpers import fresh_fork_db, fresh_fork_g_db
@@ -130,6 +131,11 @@ class TestProposalPipeline(unittest.TestCase):
         self.assertEqual(len(proposals_mod.load_registry()), 1)
 
     def _reviewed(self):
+        # The shared gate requires the turn to be exactly
+        # last_swept + 1: Turn 133 applies only once 132 is swept.
+        db.set_meta(self.conn, "last_swept_turn", 132)
+        db.set_meta(self.conn, "last_swept_version", "ForkA-vFINAL.1")
+        self.conn.commit()
         entry = proposals_mod.intake_file(
             "drive-file-1", "turn-133-proposal.txt", _fork_block(),
             self.conn)

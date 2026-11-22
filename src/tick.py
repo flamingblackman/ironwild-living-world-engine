@@ -20,14 +20,19 @@ One tick (1 in-world day), in fixed order:
   7. Era boundary (tick % era_length == 0): legacy rules fire once.
   8. Snapshot every 10 ticks.
 
-Determinism: a single random.Random seeded from the seed's rng_seed is
-consumed in actor order. Same seed + same seed data -> same world.
+Determinism: rng_scheme v1 (the old path, kept for pre-scheme DBs)
+consumes a single random.Random seeded from the seed's rng_seed in
+actor order. rng_scheme v2 gives every actor its own stream from
+rng_for(seed, actor_id, tick), so chunked ticking equals one
+continuous run and adding an actor changes no one else's draws.
+Same seed + same seed data -> same world, on either scheme.
 
 Halts: an action carrying "halt_if" raises EngineHalt when its condition
 holds (the engine stops and asks Lore instead of improvising). The halt
 propagates out of run_ticks; the CLI reports it and exits non-zero.
 """
 
+import hashlib
 import json
 import random
 
@@ -163,10 +168,48 @@ def _feed_burn(conn, tick):
                             applied)
 
 
+def rng_for(rng_seed, actor_id, tick):
+    """Per-actor RNG stream (rng_scheme v2): a Random seeded from
+    sha256("seed|actor_id|tick"). The tuple is hashed, never added,
+    so (seed 5, tick 3) and (seed 3, tick 5) are different streams.
+    An actor's draws for a tick depend only on its own id: adding
+    or removing another actor changes no one's draws, and chunked
+    ticking equals one continuous run."""
+    digest = hashlib.sha256(
+        ("%s|%s|%s" % (rng_seed, actor_id, tick)).encode()).digest()
+    return random.Random(int.from_bytes(digest[:8], "big"))
+
+
+def _rng_for_actor(shared_rng, rng_seed, actor_id, tick, scheme):
+    """The rng an actor draws from this tick: its own per-actor
+    stream under v2, the shared stream under v1."""
+    if scheme == "v2":
+        return rng_for(rng_seed, actor_id, tick)
+    return shared_rng
+
+
 def run_ticks(conn, n, rng=None, catalog=None, legacy=None, era_length=365):
-    """Run n ticks. Returns the final tick number."""
-    if rng is None:
-        rng = random.Random(int(db.get_meta(conn, "rng_seed", 0)))
+    """Run n ticks. Returns the final tick number.
+
+    Each tick runs in its own BEGIN IMMEDIATE transaction: a second
+    writer blocks (then fails loudly) instead of interleaving, and a
+    halt or error rolls the partial tick back instead of committing
+    it. On EngineHalt the tick number is unchanged and exactly one
+    halt record is written (in its own transaction), so a retry
+    re-runs the same tick. Requires no open transaction on `conn`.
+
+    Randomness comes from one scheme, chosen by the `rng_scheme`
+    meta (v1 when the key is missing, so pre-scheme DBs replay
+    identically): v1 is the old shared stream — the passed `rng`,
+    or `Random(rng_seed)` re-seeded per call. v2 is per-actor
+    streams from `rng_for(rng_seed, actor_id, tick)`; the passed
+    `rng` is ignored under v2, so every driver produces the same
+    world from the same seed.
+    """
+    rng_seed = int(db.get_meta(conn, "rng_seed", 0))
+    scheme = db.get_meta(conn, "rng_scheme", "v1")
+    if scheme == "v1" and rng is None:
+        rng = random.Random(rng_seed)
     if catalog is None:
         catalog = seed_mod.load_catalog(conn)
     if legacy is None:
@@ -176,27 +219,40 @@ def run_ticks(conn, n, rng=None, catalog=None, legacy=None, era_length=365):
         a.get("actor_kind") == "engine" for a in catalog)
 
     for _ in range(n):
+        conn.execute("BEGIN IMMEDIATE")
         tick = db.get_tick(conn) + 1
         db.set_tick(conn, tick)
 
         try:
             _run_one_tick(conn, tick, rng, catalog, legacy, era_length,
-                          has_engine_actions)
+                          has_engine_actions, rng_seed=rng_seed,
+                          scheme=scheme)
         except EngineHalt as exc:
-            # The halt itself is logged, then the partial tick is committed
-            # so the log shows what led to the stop. The halt propagates:
-            # the run ends here and Lore must decide.
-            events.append_event(conn, tick, "engine", "halt", None, None,
-                                [{"op": "note", "text": str(exc)}])
+            # Roll the partial tick back entirely (including the tick
+            # advance), then write only a halt record at the last
+            # completed tick, in its own transaction. The halt
+            # propagates: the run ends here and Lore must decide.
+            conn.rollback()
+            halted_tick = db.get_tick(conn)
+            events.append_event(
+                conn, halted_tick, "engine", "halt", None, None,
+                [{"op": "note",
+                  "text": "halt at tick %d: %s" % (tick, exc)}])
             conn.commit()
+            raise
+        except Exception:
+            conn.rollback()
             raise
         conn.commit()
     return db.get_tick(conn)
 
 
 def _run_one_tick(conn, tick, rng, catalog, legacy, era_length,
-                  has_engine_actions):
-    """One tick of work, factored out so a halt can commit the partial log."""
+                  has_engine_actions, rng_seed=0, scheme="v1"):
+    """One tick of work, factored out so a halt can roll the partial
+    tick back (run_ticks owns the transaction). `rng` is the v1
+    shared stream; under v2 each actor draws from its own
+    `rng_for` stream instead."""
     # 0. Clear last tick's flags; apply the Feed burn.
     conn.execute("DELETE FROM tick_flags WHERE tick < ?", (tick,))
     _feed_burn(conn, tick)
@@ -238,7 +294,9 @@ def _run_one_tick(conn, tick, rng, catalog, legacy, era_length,
             "SELECT id FROM npcs WHERE status LIKE 'active%' "
             "ORDER BY id"
             ).fetchall():
-        _act(conn, tick, rng, {"id": npc["id"], "kind": "npc"}, catalog)
+        _act(conn, tick,
+             _rng_for_actor(rng, rng_seed, npc["id"], tick, scheme),
+             {"id": npc["id"], "kind": "npc"}, catalog)
 
     # 5. Engines act, only if the catalog has engine actions.
     if has_engine_actions:
@@ -248,8 +306,9 @@ def _run_one_tick(conn, tick, rng, catalog, legacy, era_length,
                 ).fetchall():
             if eng["id"] in instinct_engines:
                 continue
-            _act(conn, tick, rng, {"id": eng["id"], "kind": "engine"},
-                 catalog)
+            _act(conn, tick,
+                 _rng_for_actor(rng, rng_seed, eng["id"], tick, scheme),
+                 {"id": eng["id"], "kind": "engine"}, catalog)
 
     # 6. Clock completions.
     clocks.check_completions(conn, tick)

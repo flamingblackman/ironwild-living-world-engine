@@ -33,11 +33,15 @@ class TestDeterminism(unittest.TestCase):
     def test_different_seed_different_world(self):
         with tempfile.TemporaryDirectory() as tmp:
             conn_a, _ = fresh_fixture_db(os.path.join(tmp, "a.sqlite"))
-            tick_mod.run_ticks(conn_a, 30, rng=random.Random(131))
+            tick_mod.run_ticks(conn_a, 30)
             hash_a = db.state_hash(conn_a)
             conn_a.close()
             conn_b, _ = fresh_fixture_db(os.path.join(tmp, "b.sqlite"))
-            tick_mod.run_ticks(conn_b, 30, rng=random.Random(999))
+            # Under v2 the seed is the DB's rng_seed meta, not a
+            # passed Random: a different seed must diverge.
+            db.set_meta(conn_b, "rng_seed", 999)
+            conn_b.commit()
+            tick_mod.run_ticks(conn_b, 30)
             hash_b = db.state_hash(conn_b)
             conn_b.close()
         # Different seeds must be able to diverge (ties break differently).

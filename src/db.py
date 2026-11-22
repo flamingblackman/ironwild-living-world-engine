@@ -17,6 +17,10 @@ def connect(db_path):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    # A second writer waits up to 5s, then fails loudly ("database
+    # is locked") instead of interleaving. The BEGIN IMMEDIATE
+    # transactions in tick.py / sweep.py rely on this.
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 

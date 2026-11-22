@@ -29,7 +29,8 @@ import json
 import os
 import re
 
-from src import db, forks, drive_io, events, sweep as sweep_mod
+from src import (apply_adapter as apply_adapter_mod, db, forks,
+                 drive_io, events, sweep as sweep_mod)
 
 # The proposals tree is scopable for tests: IRONWILD_PROPOSALS_DIR
 # points the registry + proposal records at a scratch dir, so the 1A
@@ -261,6 +262,7 @@ def apply_proposal(pid, conn, approved_by, flag_path=None,
     refusal — nothing is applied. Returns the apply_sweep result
     plus the binding.
     """
+    db.init_schema(conn)  # migrate: applied_turns + prev_hash index
     registry = load_registry()
     entry = registry.get(pid)
     if entry is None:
@@ -293,17 +295,21 @@ def apply_proposal(pid, conn, approved_by, flag_path=None,
             "stored proposal %s does not match its recorded hash; "
             "refusing to apply" % pid)
     parsed = sweep_mod.parse_state_block(stored)
+    # The shared gate: turn order + duplicate. Applies to the Drive
+    # path too, including a human approval.
+    apply_adapter_mod.check_apply_gate(parsed, conn,
+                                       entry["content_hash"])
     result = sweep_mod.apply_sweep(
         parsed, conn, approved_by, flag_path=flag_path,
-        resource_changes=resource_changes, lore_approval=lore_approval)
-    import datetime
+        resource_changes=resource_changes, lore_approval=lore_approval,
+        content_hash=entry["content_hash"], proposal_id=pid,
+        source=entry.get("source", "drive"))
     result["proposal_binding"] = {
         "proposal_id": pid,
         "drive_file_id": entry["drive_file_id"],
         "content_hash": entry["content_hash"],
         "approved_by": "Lore" if lore_approval else approved_by,
-        "applied_at": datetime.datetime.now(
-            datetime.timezone.utc).isoformat(),
+        "applied_at": result["applied_at"],
     }
     if lore_approval:
         result["proposal_binding"]["lore_approval"] = lore_approval

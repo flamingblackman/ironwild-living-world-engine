@@ -27,10 +27,13 @@ No catch-up ticks: a missed day is a quiet day, and the log says so.
 The runner ticks exactly once per invocation, and at most once per
 day per world.
 
-RNG: seeded from rng_seed + the tick number, so each day's tick is
-deterministic (replayable) but distinct from other days. This differs
-from the manual `tick` command, which re-seeds from rng_seed on every
-run.
+RNG: one scheme for every driver (rng_scheme in the DB). Under v1
+the runner seeds Random(seed + tick) and the manual `tick` command
+re-seeds from rng_seed on every run — two schemes, and the v1
+runner's seed+tick collides (seed 5 tick 3 = seed 3 tick 5).
+Under v2 the per-actor streams in tick.rng_for govern and the
+passed rng is ignored, so the daily tick and the manual tick
+produce the same world from the same seed.
 
 The runner never calls an LLM and never touches the live Turn 136
 scene. Each run writes `runs/auto/<date>/tick.log` (outcome, tick,

@@ -29,6 +29,7 @@ its completion effects (see src/clocks.py check_completions) — the
 sweep itself never fires completion effects.
 """
 
+import datetime
 import json
 import re
 
@@ -491,19 +492,24 @@ def summarize(parsed, findings, changes, conn=None):
 
 
 def apply_sweep(parsed, conn, approved_by, flag_path=None,
-                resource_changes=None, lore_approval=None):
+                resource_changes=None, lore_approval=None,
+                content_hash=None, proposal_id=None, source=None):
     """Apply a validated block in one transaction.
 
-    Raises SweepError when validation has errors, when the session
-    flag is open, or when no approver is named. `resource_changes`
-    are explicitly approved resource moves (the V2 block has no
-    Resources field); each is validated against the DB's current
-    value and applied in the same transaction, one append-only event
-    per change. `lore_approval` is the Lore submission id when the
-    apply rests on Lore's verdict (a Lore-call proposal): the audit
-    trail then records the approver as Lore, not Bryan, so a
-    Lore-approved apply is distinguishable from a Bryan-approved
-    one. Returns the applied changes plus the carried state
+    The transaction is BEGIN IMMEDIATE: a second writer blocks
+    (then fails loudly) instead of interleaving. Raises SweepError
+    when validation has errors, when the session flag is open, or
+    when no approver is named. `resource_changes` are explicitly
+    approved resource moves (the V2 block has no Resources field);
+    each is validated against the DB's current value and applied in
+    the same transaction, one append-only event per change.
+    `lore_approval` is the Lore submission id when the apply rests
+    on Lore's verdict (a Lore-call proposal): the audit trail then
+    records the approver as Lore, not Bryan, so a Lore-approved
+    apply is distinguishable from a Bryan-approved one. When
+    `content_hash` is given, the apply is also recorded in
+    `applied_turns` in the same transaction, and the result carries
+    `applied_at`. Returns the applied changes plus the carried state
     for the next handshake.
     """
     if not approved_by:
@@ -523,6 +529,8 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
                                 rc["resource"]))
     changes = diff(parsed, conn, resource_changes)
     tick = db.get_tick(conn)
+    conn.execute("BEGIN IMMEDIATE")
+    applied_at = None
     with conn:
         for c in changes:
             if c["kind"] == "clock":
@@ -571,6 +579,17 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
         # runner refuses while a decision is recorded here.
         db.set_meta(conn, "pending_decision",
                     parsed["unresolved_decisions"] or "")
+        if content_hash is not None:
+            applied_at = datetime.datetime.now(
+                datetime.timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO applied_turns (turn, content_hash, "
+                "state_version, applied_at, approver, source, "
+                "proposal_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (parsed["turn"], content_hash,
+                 parsed["state_version"], applied_at,
+                 "Lore" if lore_approval else approved_by,
+                 source, proposal_id))
     carried = {
         "turn": parsed["turn"],
         "state_version": parsed["state_version"],
@@ -594,7 +613,8 @@ def apply_sweep(parsed, conn, approved_by, flag_path=None,
     }
     result = {"applied": changes, "carried": carried,
               "turn": parsed["turn"],
-              "approved_by": "Lore" if lore_approval else approved_by}
+              "approved_by": "Lore" if lore_approval else approved_by,
+              "applied_at": applied_at}
     if lore_approval:
         result["lore_approval"] = lore_approval
     return result

@@ -16,13 +16,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src import (auto_apply as auto_apply_mod,
+from src import (apply_adapter as apply_adapter_mod,
+                 auto_apply as auto_apply_mod,
                  auto_tick as auto_tick_mod,
                  checkpoint as checkpoint_mod,
                  db, drive_io, events, handshake as handshake_mod,
                  proposals as proposals_mod, render,
                  seed as seed_mod, session as session_mod, sweep as sweep_mod,
-                 tick as tick_mod)
+                 tick as tick_mod, turn as turn_mod)
 
 
 def _open(db_path):
@@ -506,11 +507,18 @@ def cmd_sweep(args):
         print("apply refused: validation errors above.")
         conn.close()
         sys.exit(1)
+    db.init_schema(conn)  # migrate: applied_turns + prev_hash index
     try:
+        # The shared gate: turn order + duplicate. Applies to the
+        # manual path too, including a human approval.
+        apply_adapter_mod.check_apply_gate(
+            parsed, conn, proposals_mod.content_hash(text))
         result = sweep_mod.apply_sweep(
             parsed, conn, args.approved_by,
             flag_path=args.flag or session_mod.FLAG_PATH,
-            resource_changes=resource_changes)
+            resource_changes=resource_changes,
+            content_hash=proposals_mod.content_hash(text),
+            proposal_id=None, source="manual-sweep")
     except sweep_mod.SweepError as exc:
         record["ok"] = False
         record["error"] = str(exc)
@@ -578,6 +586,27 @@ def cmd_auto_tick(args):
         for p in result["problems"]:
             print(f"  - {p}")
         sys.exit(1)
+
+
+def cmd_migrate(args):
+    """Apply the schema (idempotent) to an existing DB: creates the
+    applied_turns table and the UNIQUE prev_hash index if missing.
+    Prints the state hash before and after — the migration alone
+    must not change it."""
+    conn = _open(args.db)
+    before = db.state_hash(conn)
+    db.init_schema(conn)
+    after = db.state_hash(conn)
+    rows = conn.execute(
+        "SELECT COUNT(*) FROM applied_turns").fetchone()[0]
+    index = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' "
+        "AND name = 'idx_events_prev_hash'").fetchone()[0]
+    conn.close()
+    print(f"migrated {args.db}: applied_turns rows={rows}, "
+          f"prev_hash index={'present' if index else 'MISSING'}, "
+          f"state hash {before[:12]} -> {after[:12]}"
+          + (" (unchanged)" if before == after else " (CHANGED!)"))
 
 
 def main():
@@ -667,6 +696,26 @@ def main():
     p.add_argument("--sweeps", default="runs/sweeps")
     p.add_argument("--seed", default=None)
     p.set_defaults(fn=cmd_checkpoint)
+
+    p = sub.add_parser("turn")
+    p.add_argument("--db", required=True)
+    p.add_argument("--file", default=None,
+                   help="local [TURN STATE] block file to apply")
+    p.add_argument("--stdin", action="store_true",
+                   help="read the block from stdin instead of --file")
+    p.add_argument("--yes", action="store_true",
+                   help="confirm a REVIEW tier without prompting")
+    p.add_argument("--dry-run", action="store_true",
+                   help="parse, validate and tier only; write nothing")
+    p.add_argument("--queue", action="store_true",
+                   help="list proposals and files waiting, in order")
+    p.add_argument("--rollback", action="store_true",
+                   help="restore the most recent pre-apply backup")
+    p.set_defaults(fn=turn_mod.cmd_turn)
+
+    p = sub.add_parser("migrate")
+    p.add_argument("--db", required=True)
+    p.set_defaults(fn=cmd_migrate)
 
     p = sub.add_parser("auto-tick")
     p.add_argument("--db", required=True)
