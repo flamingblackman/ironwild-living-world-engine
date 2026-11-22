@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🤖 Living World Engine — Ironwild
+# 🤖 Living World Engine
 
-**The machine, not the story. A deterministic tick engine for a world of giant robots.**
+**The machine, not the story. A universal deterministic tick engine for story worlds — any seed, any world, one set of rules.**
 
 [![Python](https://img.shields.io/badge/Python-3%20stdlib%20only-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![SQLite](https://img.shields.io/badge/SQLite-Single%20source%20of%20truth-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org)
@@ -14,6 +14,28 @@
 ## What it does in 10 seconds
 
 Seed in, ticks out. One tick is one in-world day: engines get hungry, NPCs score their actions and do the best one, clocks tick, eras turn. Every move lands in an append-only event log with a hash chain, and the state database is the single source of truth. Same seed, same world, every time — deterministic down to the last event.
+
+## Universal engine — the direction (2026-11-22)
+
+Building toward a universal engine, proven on Ironwild, testing on
+Dragon Ball. Universal means: anyone brings their own seed — their own
+actors, clocks, resources, locations, factions — and plays their own
+story. The engine never knows whose story it is. It just runs the rules
+in the seed. Same seed, same world, every time.
+
+Ironwild is proof one. The Dragon Ball fork is the test for universality,
+approved 2026-11-22: canon-first, no code until the canon and seed
+exist. Qorn is live, Spinach is frozen, both untouched. If the engine
+runs Dragon Ball without Ironwild-specific code, it is universal. If it
+needs Ironwild-specific hacks, it is not.
+
+What still has to be cleaned out of the core before the claim is real:
+the frozen Turn 136 vFINAL.5 hardcoded, the approver name hardcoded,
+the dream_share Bond rule, Instinct, the DC-18 gate, the molt op,
+Engines / Bonds / Pack as fixed types, the world list hardcoded to
+Fork A / B / G, and the checkpoint frozen terms (turn136vfinal5). Until
+Dragon Ball proves it, "universal" is the direction, not the achievement.
+No one else uses the engine yet.
 
 ## The tick, in pictures
 
@@ -31,6 +53,8 @@ flowchart TD
 ```
 
 ## The world at a glance
+
+Ironwild is the first proof — the engine's first world.
 
 | | |
 | --- | --- |
