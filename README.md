@@ -13,7 +13,7 @@
 
 ## What it does in 10 seconds
 
-Seed in, ticks out. One tick is one in-world day: engines get hungry, NPCs score their actions and do the best one, clocks tick, eras turn. Every move lands in an append-only event log with a hash chain, and the state database is the single source of truth. Same seed, same world, every time — deterministic down to the last event.
+Seed in, ticks out. One tick is one in-world day: actors score their actions and do the best one, clocks tick, eras turn. Every move lands in an append-only event log with a hash chain, and the state database is the single source of truth. Same seed, same world, every time — deterministic down to the last event.
 
 ## Universal engine — the direction (2026-11-22)
 
@@ -39,6 +39,8 @@ No one else uses the engine yet.
 
 ## The tick, in pictures
 
+The tick, shown here in Ironwild (proof one):
+
 ```mermaid
 flowchart TD
     A[🌅 Molted engines return to active] --> B[🍽️ Every engine's Hunger +1]
@@ -52,7 +54,7 @@ flowchart TD
     H --> I[📸 Snapshot every 10 ticks]
 ```
 
-## The world at a glance
+## Proof one: Ironwild at a glance
 
 Ironwild is the first proof — the engine's first world.
 
@@ -66,7 +68,7 @@ Ironwild is the first proof — the engine's first world.
 | Engine | Python 3 stdlib + SQLite, no LLM ever writes state |
 | Proof | 199 tests passing · 400-tick fast-forward · hash-chained event log |
 
-## What a tick looks like
+## What a tick looks like in Ironwild
 
 Real events from the v1.6 400-tick run (tick 399):
 
@@ -372,6 +374,10 @@ python3 -m src.run fast-forward --db runs/proof-400/fork-a.sqlite --n 400
 
 ## The tick
 
+This is Ironwild's tick. The universal engine generalizes the loop —
+the Ironwild-specific steps below (molt, Hunger, Instinct) are on the
+cleanup list in the direction section above.
+
 1 tick = 1 in-world day. In fixed order: molted engines return to active;
 every engine's Hunger +1; engines at their Hunger threshold hunt on
 Instinct (Feed +2 to their pilot, Hunger set to 4); every active NPC scores
@@ -397,9 +403,9 @@ exact shape (synthetic actors — do not mistake it for canon).
 
 ## The future dynamic map (Phase 4, not Phase 1)
 
-Bryan's requirement: the world view map must eventually become dynamic, so
-a wiped-out continent, a flipped territory, a fallen den, or a destroyed
-region is visible on the map. Phase 1 does not build that map. What Phase 1
+Bryan's requirement: the world view map must eventually become dynamic in
+Ironwild, so a wiped-out continent, a flipped territory, a fallen den, or
+a destroyed region is visible on the map. Phase 1 does not build that map. What Phase 1
 does is record every location and territory change as state — in the
 `locations` table (controller + status) and in the event log
 (`location_set` / `status_set` effects) — so a later dynamic map can render
